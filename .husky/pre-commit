@@ -1,0 +1,2 @@
+# 用 Node 执行脚本
+node .husky/pre-commit.js
