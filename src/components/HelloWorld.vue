@@ -1,5 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useCounterStore } from '@/stores/counter_options';
+import { useUsersStore } from '@/stores/users_setup';
+const store = useCounterStore();
+const store2 = useUsersStore();
+store.count++;
+console.log(store.count, store2.age);
+store2.age++;
+console.log(store.count, store2.age);
+store2.$reset();
+console.log(store.count, store2.age);
 
 defineProps<{ msg: string }>();
 
@@ -34,8 +44,19 @@ const count = ref(0);
   <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .read-the-docs {
   color: #888;
+  p {
+    a {
+      color: red;
+    }
+  }
+}
+.card {
+  $primary-color: green;
+  button {
+    color: $primary-color;
+  }
 }
 </style>
