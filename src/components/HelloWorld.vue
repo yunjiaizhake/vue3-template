@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { useCounterStore } from '@/stores/counter_options';
 import { useUsersStore } from '@/stores/users_setup';
 const store = useCounterStore();
