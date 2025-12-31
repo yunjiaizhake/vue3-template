@@ -1,12 +1,23 @@
 import { createApp } from 'vue';
-import './style.css';
 import App from './App.vue';
 
 import router from '@/router';
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
+import '@/styles/index.less';
+import mmToast from '@/base/mm-toast';
+import Icon from '@/base/mm-icon/index.vue';
+
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
-createApp(App).use(pinia).use(router).mount('#app');
+const app = createApp(App);
+
+// 注册全局组件
+app.component('MmIcon', Icon);
+
+// 注册全局插件
+app.use(mmToast);
+
+app.use(pinia).use(router).mount('#app');

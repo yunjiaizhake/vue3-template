@@ -16,9 +16,16 @@ export default defineConfig({
       },
     }),
   ],
+  css: {
+    preprocessorOptions: {
+      less: {
+        additionalData: `@import "src/styles/var.less"; @import "src/styles/mixin.less";`,
+      },
+    },
+  },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),
+      '@': resolve(__dirname, './src'),
     },
   },
 });

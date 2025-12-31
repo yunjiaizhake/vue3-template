@@ -8,5 +8,5 @@ declare module '*.vue' {
 
 // 定义环境变量类型,interface是追加类型，不会覆盖原有的，会在原有的后面追加
 interface ImportMetaEnv {
-  readonly VITE_API_PORT: string;
+  readonly VUE_APP_BASE_API_URL: string;
 }
