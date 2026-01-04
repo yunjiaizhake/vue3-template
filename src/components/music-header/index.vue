@@ -158,7 +158,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="less">
+<style lang="less">
 .mm-header {
   position: absolute;
   top: 0;

@@ -1,81 +1,93 @@
 <template>
   <!--我的歌单-->
   <div class="userList">
-    <mm-loading v-model="mmLoadShow" />
+    <mm-loading :value="mmLoadShow" />
+
     <template v-if="list.length > 0">
-      <div v-for="item in formatList" :key="item.id" class="list-item" :title="item.name">
-        <router-link :to="{ path: `/music/details/${item.id}` }" tag="div" class="userList-item">
-          <img v-lazy="`${item.coverImgUrl}?param=200y200`" class="cover-img" />
-          <h3 class="name">{{ item.name }}</h3>
+      <div
+        v-for="item in formatList"
+        :key="item.id"
+        class="list-item"
+        :title="item.name"
+      >
+        <router-link
+          :to="{ path: `/music/details/${item.id}` }"
+          custom
+          v-slot="{ navigate }"
+        >
+          <div class="userList-item" @click="navigate">
+            <img
+              v-lazy="`${item.coverImgUrl}?param=200y200`"
+              class="cover-img"
+            />
+            <h3 class="name">{{ item.name }}</h3>
+          </div>
         </router-link>
       </div>
     </template>
+
     <mm-no-result v-else title="啥也没有哦，快去登录看看吧！" />
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex'
+<script setup>
+import { usePlayerStore } from '@/stores';
+import { getUserPlaylist } from '@/api';
+import MmLoading from '@/base/mm-loading/index.vue';
+import MmNoResult from '@/base/mm-no-result/index.vue';
+import { useLoad } from '@/hooks/useload';
 
-import { getUserPlaylist } from 'api'
-import { loadMixin } from '@/utils/mixin'
+// -------------------- store & hooks --------------------
+const playerStore = usePlayerStore();
+const { mmLoadShow, _hideLoad } = useLoad();
 
-import MmLoading from 'base/mm-loading/mm-loading'
-import MmNoResult from 'base/mm-no-result/mm-no-result'
+// -------------------- 数据 --------------------
+const list = ref([]);
 
-export default {
-  name: 'PlayList',
-  components: {
-    MmLoading,
-    MmNoResult,
-  },
-  mixins: [loadMixin],
-  data() {
-    return {
-      list: [], // 列表
+// -------------------- computed --------------------
+const uid = computed(() => playerStore.uid);
+
+const formatList = computed(() => {
+  return list.value.filter((item) => item.trackCount > 0);
+});
+
+// -------------------- watch --------------------
+watch(uid, (newUid) => {
+  if (newUid) {
+    mmLoadShow.value = true;
+    _getUserPlaylist(newUid);
+  } else {
+    list.value = [];
+  }
+});
+
+// -------------------- 生命周期 --------------------
+onMounted(() => {
+  if (!uid.value) {
+    mmLoadShow.value = false;
+  }
+});
+
+onActivated(() => {
+  if (uid.value && list.value.length === 0) {
+    mmLoadShow.value = true;
+    _getUserPlaylist(uid.value);
+  } else if (!uid.value && list.value.length !== 0) {
+    list.value = [];
+  }
+});
+
+// -------------------- methods --------------------
+
+// 获取我的歌单详情
+function _getUserPlaylist(uid) {
+  getUserPlaylist(uid).then((res) => {
+    if (res.playlist.length === 0) {
+      return;
     }
-  },
-  computed: {
-    formatList() {
-      return this.list.filter((item) => item.trackCount > 0)
-    },
-    ...mapGetters(['uid']),
-  },
-  watch: {
-    uid(newUid) {
-      if (newUid) {
-        this.mmLoadShow = true
-        this._getUserPlaylist(newUid)
-      } else {
-        this.list = []
-      }
-    },
-  },
-  created() {
-    if (!this.uid) {
-      this.mmLoadShow = false
-    }
-  },
-  activated() {
-    if (this.uid && this.list.length === 0) {
-      this.mmLoadShow = true
-      this._getUserPlaylist(this.uid)
-    } else if (!this.uid && this.list.length !== 0) {
-      this.list = []
-    }
-  },
-  methods: {
-    // 获取我的歌单详情
-    _getUserPlaylist(uid) {
-      getUserPlaylist(uid).then((res) => {
-        if (res.playlist.length === 0) {
-          return
-        }
-        this.list = res.playlist.slice(1)
-        this._hideLoad()
-      })
-    },
-  },
+    list.value = res.playlist.slice(1);
+    _hideLoad();
+  });
 }
 </script>
 

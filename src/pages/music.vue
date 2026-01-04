@@ -3,12 +3,17 @@
     <div class="music-content">
       <div class="music-left flex-col">
         <music-btn @onClickLyric="handleOpenLyric" />
-        <RouterView v-slot="{ Component, route }">
-          <KeepAlive v-if="route.meta.keepAlive">
+        <router-view v-slot="{ Component }">
+          <keep-alive v-if="$route.meta.keepAlive">
             <component :is="Component" class="router-view" />
-          </KeepAlive>
-          <component v-else :is="Component" class="router-view" />
-        </RouterView>
+          </keep-alive>
+          <component
+            v-else
+            :is="Component"
+            :key="$route.fullPath"
+            class="router-view"
+          />
+        </router-view>
         <router-view
           v-if="!$route.meta.keepAlive"
           :key="$route.path"
@@ -18,8 +23,8 @@
       <div class="music-right" :class="{ show: lyricVisible }">
         <div class="close-lyric" @click="handleCloseLyric">关闭歌词</div>
         <lyric
-          ref="lyric"
-          :lyric="lyric"
+          ref="lyricRef"
+          :lyric="lyric.value"
           :nolyric="nolyric"
           :lyric-index="lyricIndex"
         />
@@ -63,9 +68,7 @@
           <template v-else>欢迎使用BbPlayer在线音乐播放器</template>
         </div>
         <div v-if="currentMusic.id" class="music-bar-time">
-          {{ currentTime | format }}/{{
-            (currentMusic.duration % 3600) | format
-          }}
+          {{ format(currentTime) }}/{{ format(currentMusic.duration % 3600) }}
         </div>
         <mm-progress
           class="music-progress"
@@ -134,6 +137,9 @@ const nolyric = ref(false);
 const lyricIndex = ref(0);
 const isMute = ref(false);
 
+const { proxy } = getCurrentInstance(); // 拿到当前实例
+const lyricRef = useTemplateRef('lyricRef');
+
 // -------------------- 路由 & store --------------------
 const route = useRoute();
 const router = useRouter();
@@ -199,7 +205,21 @@ watch(route, () => {
 // -------------------- 生命周期 --------------------
 onMounted(() => {
   nextTick(() => {
-    mmPlayerMusic.initAudio({ audioEle, ...store });
+    mmPlayerMusic.initAudio({
+      audioEle,
+      currentMusic: currentMusic.value,
+      currentTime,
+      currentProgress,
+      musicReady,
+      mode,
+      playlist,
+      historyList,
+      setPlaying: store.setPlaying,
+      next,
+      loop,
+      setHistory: store.setHistory,
+      toast: proxy.$mmToast, // 传入全局toast
+    });
     initKeyDown();
     volumeChange(volume.value);
   });
@@ -350,7 +370,7 @@ function getModeIconTitle() {
 function handleOpenLyric() {
   lyricVisible.value = true;
   nextTick(() => {
-    if ($refs.lyric) $refs.lyric.clacTop();
+    if (lyricRef.value) lyricRef.value.calcTop();
   });
 }
 

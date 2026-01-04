@@ -107,12 +107,17 @@ const calcTop = () => {
 let resizeTimer: number | null = null;
 
 onMounted(() => {
+  console.log('1111111111111111', props.lyric);
   window.addEventListener('resize', () => {
     resizeTimer && clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(calcTop, 60);
   });
 
   nextTick(() => calcTop());
+});
+
+defineExpose({
+  calcTop,
 });
 </script>
 

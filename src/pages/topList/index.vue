@@ -1,7 +1,7 @@
 <template>
-  <!--排行榜-->
+  <!--排行榜，推荐-->
   <div class="topList">
-    <mm-loading v-model="mmLoadShow" />
+    <mm-loading :value="mmLoadShow" />
     <template v-if="!mmLoadShow">
       <div class="topList-head">云音乐特色榜</div>
       <div class="topList-content">
@@ -11,22 +11,46 @@
           class="list-item"
           :title="`${item.name}-${item.updateFrequency}`"
         >
-          <router-link :to="{ path: `/music/details/${item.id}` }" tag="div" class="topList-item">
-            <div class="topList-img">
-              <img v-lazy="`${item.coverImgUrl}?param=300y300`" class="cover-img" />
+          <router-link
+            :to="{ path: `/music/details/${item.id}` }"
+            custom
+            v-slot="{ navigate }"
+          >
+            <div class="topList-item" @click="navigate">
+              <div class="topList-img">
+                <img
+                  v-lazy="`${item.coverImgUrl}?param=300y300`"
+                  class="cover-img"
+                />
+              </div>
+              <h3 class="name">{{ item.name }}</h3>
             </div>
-            <h3 class="name">{{ item.name }}</h3>
           </router-link>
         </div>
       </div>
+
       <div class="topList-head">热门歌单</div>
       <div class="topList-content">
-        <div v-for="(item, index) in hotList" :key="index" class="list-item" :title="item.name">
-          <router-link :to="{ path: `/music/details/${item.id}` }" tag="div" class="topList-item">
-            <div class="topList-img">
-              <img v-lazy="`${item.picUrl}?param=300y300`" class="cover-img" />
+        <div
+          v-for="(item, index) in hotList"
+          :key="index"
+          class="list-item"
+          :title="item.name"
+        >
+          <router-link
+            :to="{ path: `/music/details/${item.id}` }"
+            custom
+            v-slot="{ navigate }"
+          >
+            <div class="topList-item" @click="navigate">
+              <div class="topList-img">
+                <img
+                  v-lazy="`${item.picUrl}?param=300y300`"
+                  class="cover-img"
+                />
+              </div>
+              <h3 class="name">{{ item.name }}</h3>
             </div>
-            <h3 class="name">{{ item.name }}</h3>
           </router-link>
         </div>
       </div>
@@ -34,33 +58,30 @@
   </div>
 </template>
 
-<script>
-import { getToplistDetail, getPersonalized } from 'api'
-import MmLoading from 'base/mm-loading/mm-loading'
-import { loadMixin } from '@/utils/mixin'
+<script setup>
+import { getToplistDetail, getPersonalized } from '@/api';
+import MmLoading from '@/base/mm-loading/index.vue';
+import { useLoad } from '@/hooks/useload';
 
-export default {
-  name: 'PlayList',
-  components: {
-    MmLoading,
-  },
-  mixins: [loadMixin],
-  data() {
-    return {
-      list: [], // 云音乐特色榜
-      hotList: [], // 热门歌单
-    }
-  },
-  created() {
-    Promise.all([getToplistDetail(), getPersonalized()])
-      .then(([topList, hotList]) => {
-        this.list = topList.list.filter((v) => v.ToplistType)
-        this.hotList = hotList.result.slice()
-        this._hideLoad()
-      })
-      .catch(() => {})
-  },
-}
+// -------------------- store & hooks --------------------
+const { mmLoadShow, _hideLoad } = useLoad();
+
+// -------------------- 数据 --------------------
+const list = ref([]); // 云音乐特色榜
+const hotList = ref([]); // 热门歌单
+
+// -------------------- 生命周期 --------------------
+onMounted(() => {
+  Promise.all([getToplistDetail(), getPersonalized()])
+    .then(([topList, hotListRes]) => {
+      list.value = topList.list.filter((v) => v.ToplistType);
+      hotList.value = hotListRes.result.slice();
+      _hideLoad();
+    })
+    .catch(() => {
+      _hideLoad();
+    });
+});
 </script>
 
 <style lang="less" scoped>

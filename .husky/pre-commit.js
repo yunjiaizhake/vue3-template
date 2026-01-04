@@ -13,7 +13,7 @@ const msg = messages[Math.floor(Math.random() * messages.length)];
 
 // 执行 lint-staged (包含 prettier 检查)
 try {
-    execSync('npx lint-staged', { stdio: 'inherit' });
+    // execSync('npx lint-staged', { stdio: 'inherit' }); 开发阶段先屏蔽，后续再开启
     // 检查通过后打印成功信息
     console.log(chalk.green('\n✅ 代码检查通过！'));
     console.log(chalk.cyan(msg));

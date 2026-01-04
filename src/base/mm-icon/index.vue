@@ -38,8 +38,6 @@ function onClick(e) {
   line-height: 1;
   vertical-align: baseline;
   text-transform: none;
-  speak: none;
-  /* Better Font Rendering =========== */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

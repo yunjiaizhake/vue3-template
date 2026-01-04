@@ -1,12 +1,22 @@
 <template>
   <!--选项-->
   <div class="music-btn">
-    <router-link to="/music/playlist" tag="span">正在播放</router-link>
-    <router-link to="/music/toplist" tag="span">推荐</router-link>
-    <router-link to="/music/search" tag="span">搜索</router-link>
-    <router-link to="/music/userlist" tag="span">我的歌单</router-link>
+    <router-link to="/music/playlist" custom v-slot="{ navigate, isActive }">
+      <span :class="{ active: isActive }" @click="navigate">正在播放</span>
+    </router-link>
+    <router-link to="/music/toplist" custom v-slot="{ navigate, isActive }">
+      <span :class="{ active: isActive }" @click="navigate">推荐</span>
+    </router-link>
+    <router-link to="/music/search" custom v-slot="{ navigate, isActive }">
+      <span :class="{ active: isActive }" @click="navigate">搜索</span>
+    </router-link>
+    <router-link to="/music/userlist" custom v-slot="{ navigate, isActive }">
+      <span :class="{ active: isActive }" @click="navigate">我的歌单</span>
+    </router-link>
     <span class="show-960" @click="$emit('onClickLyric')">歌词</span>
-    <router-link to="/music/historylist" tag="span">我听过的</router-link>
+    <router-link to="/music/historylist" custom v-slot="{ navigate, isActive }">
+      <span :class="{ active: isActive }" @click="navigate">我听过的</span>
+    </router-link>
   </div>
 </template>
 

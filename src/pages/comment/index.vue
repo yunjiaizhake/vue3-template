@@ -1,18 +1,28 @@
 <template>
   <!--评论-->
-  <div class="comment" @scroll="listScroll($event)">
-    <mm-loading v-model="mmLoadShow" />
+  <div class="comment" @scroll="listScroll">
+    <mm-loading :value="mmLoadShow" />
+
     <dl v-if="hotComments.length > 0" class="comment-list">
-      <!--精彩评论-->
       <dt class="comment-title">精彩评论</dt>
-      <dd v-for="item in hotComments" :key="item.commentId" class="comment-item">
-        <a target="_blank" :href="`https://music.163.com/#/user/home?id=${item.user.userId}`">
-          <img v-lazy="`${item.user.avatarUrl}?param=50y50`" class="comment-item-pic" />
+      <dd
+        v-for="item in hotComments"
+        :key="item.commentId"
+        class="comment-item"
+      >
+        <a
+          target="_blank"
+          :href="`https://music.163.com/#/user/home?id=${item.user.userId}`"
+        >
+          <img
+            v-lazy="`${item.user.avatarUrl}?param=50y50`"
+            class="comment-item-pic"
+          />
           <h2 class="comment-item-title">{{ item.user.nickname }}</h2>
         </a>
         <p class="comment-item-disc">{{ item.content }}</p>
         <div class="comment-item-opt">
-          <span class="comment-opt-date">{{ item.time | format }}</span>
+          <span class="comment-opt-date">{{ formatTime(item.time) }}</span>
           <span class="comment-opt-liked">
             <mm-icon type="good" />
             {{ item.likedCount }}
@@ -20,23 +30,36 @@
         </div>
       </dd>
     </dl>
-    <!--最新评论-->
+
     <dl v-if="commentList.length > 0" class="comment-list">
       <dt class="comment-title">最新评论（{{ total }}）</dt>
-      <dd v-for="item in commentList" :key="item.commentId" class="comment-item">
+      <dd
+        v-for="item in commentList"
+        :key="item.commentId"
+        class="comment-item"
+      >
         <a
           class="comment-item-pic"
           target="_blank"
           :href="`https://music.163.com/#/user/home?id=${item.user.userId}`"
         >
-          <img v-lazy="`${item.user.avatarUrl}?param=50y50`" class="cover-img" />
+          <img
+            v-lazy="`${item.user.avatarUrl}?param=50y50`"
+            class="cover-img"
+          />
         </a>
+
         <h2 class="comment-item-title">
-          <a target="_blank" :href="`https://music.163.com/#/user/home?id=${item.user.userId}`">
+          <a
+            target="_blank"
+            :href="`https://music.163.com/#/user/home?id=${item.user.userId}`"
+          >
             {{ item.user.nickname }}
           </a>
         </h2>
+
         <p class="comment-item-disc">{{ item.content }}</p>
+
         <div
           v-for="beReplied in item.beReplied"
           :key="beReplied.user.userId"
@@ -50,8 +73,9 @@
           </a>
           ：{{ beReplied.content }}
         </div>
+
         <div class="comment-item-opt">
-          <span class="comment-opt-date">{{ item.time | format }}</span>
+          <span class="comment-opt-date">{{ formatTime(item.time) }}</span>
           <span v-if="item.likedCount > 0" class="comment-opt-liked">
             <mm-icon type="good" />
             {{ item.likedCount }}
@@ -62,97 +86,95 @@
   </div>
 </template>
 
-<script>
-import { getComment } from 'api'
-import { addZero } from '@/utils/util'
-import MmLoading from 'base/mm-loading/mm-loading'
-import { loadMixin } from '@/utils/mixin'
+<script setup>
+import { getComment } from '@/api';
+import { addZero } from '@/utils/util';
+import MmLoading from '@/base/mm-loading/index.vue';
+import { useLoad } from '@/hooks/useload';
 
-export default {
-  name: 'Comment',
-  components: {
-    MmLoading,
-  },
-  filters: {
-    // 格式化时间
-    format(time) {
-      let formatTime
-      const date = new Date(time)
-      const dateObj = {
-        year: date.getFullYear(),
-        month: date.getMonth(),
-        date: date.getDate(),
-        hours: date.getHours(),
-        minutes: date.getMinutes(),
-      }
-      const newTime = new Date()
-      const diff = newTime.getTime() - time
-      if (newTime.getDate() === dateObj.date && diff < 60000) {
-        formatTime = '刚刚'
-      } else if (newTime.getDate() === dateObj.date && diff > 60000 && diff < 3600000) {
-        formatTime = `${Math.floor(diff / 60000)}分钟前`
-      } else if (newTime.getDate() === dateObj.date && diff > 3600000 && diff < 86400000) {
-        formatTime = `${addZero(dateObj.hours)}:${addZero(dateObj.minutes)}`
-      } else if (newTime.getDate() !== dateObj.date && diff < 86400000) {
-        formatTime = `昨天${addZero(dateObj.hours)}:${addZero(dateObj.minutes)}`
-      } else if (newTime.getFullYear() === dateObj.year) {
-        formatTime = `${dateObj.month + 1}月${dateObj.date}日`
-      } else {
-        formatTime = `${dateObj.year}年${dateObj.month + 1}月${dateObj.date}日`
-      }
-      return formatTime
-    },
-  },
-  mixins: [loadMixin],
-  data() {
-    return {
-      lockUp: true, // 是否锁定滚动加载事件,默认锁定
-      page: 0, // 分页
-      hotComments: [], // 精彩评论
-      commentList: [], // 最新评论
-      total: null, // 评论总数
-    }
-  },
-  watch: {
-    commentList(newList, oldList) {
-      if (newList.length !== oldList.length) {
-        this.lockUp = false
-      }
-    },
-  },
-  created() {
-    this.initData()
-  },
-  methods: {
-    // 初始化数据
-    initData() {
-      getComment(this.$route.params.id, this.page).then((res) => {
-        this.hotComments = res.hotComments
-        this.commentList = res.comments
-        this.total = res.total
-        this.lockUp = true
-        this._hideLoad()
-      })
-    },
-    // 列表滚动事件
-    listScroll(e) {
-      if (this.lockUp) {
-        return
-      }
-      const { scrollTop, scrollHeight, offsetHeight } = e.target
-      if (scrollTop + offsetHeight >= scrollHeight - 100) {
-        this.lockUp = true // 锁定滚动加载
-        this.page += 1
-        this.pullUp() // 触发滚动加载事件
-      }
-    },
-    // 滚动加载事件
-    pullUp() {
-      getComment(this.$route.params.id, this.page).then(({ comments }) => {
-        this.commentList = [...this.commentList, ...comments]
-      })
-    },
-  },
+// -------------------- 路由 & hooks --------------------
+const route = useRoute();
+const { mmLoadShow, _hideLoad } = useLoad();
+
+// -------------------- 数据 --------------------
+const lockUp = ref(true);
+const page = ref(0);
+const hotComments = ref([]);
+const commentList = ref([]);
+const total = ref(null);
+
+// -------------------- 监听 --------------------
+watch(commentList, (newList, oldList) => {
+  if (newList.length !== oldList.length) {
+    lockUp.value = false;
+  }
+});
+
+// -------------------- 生命周期 --------------------
+onMounted(() => {
+  initData();
+});
+
+// -------------------- 方法 --------------------
+
+// 格式化时间（原逻辑不变）
+function formatTime(time) {
+  let formatTime;
+  const date = new Date(time);
+  const dateObj = {
+    year: date.getFullYear(),
+    month: date.getMonth(),
+    date: date.getDate(),
+    hours: date.getHours(),
+    minutes: date.getMinutes(),
+  };
+  const newTime = new Date();
+  const diff = newTime.getTime() - time;
+
+  if (newTime.getDate() === dateObj.date && diff < 60000) {
+    formatTime = '刚刚';
+  } else if (newTime.getDate() === dateObj.date && diff < 3600000) {
+    formatTime = `${Math.floor(diff / 60000)}分钟前`;
+  } else if (newTime.getDate() === dateObj.date && diff < 86400000) {
+    formatTime = `${addZero(dateObj.hours)}:${addZero(dateObj.minutes)}`;
+  } else if (newTime.getDate() !== dateObj.date && diff < 86400000) {
+    formatTime = `昨天${addZero(dateObj.hours)}:${addZero(dateObj.minutes)}`;
+  } else if (newTime.getFullYear() === dateObj.year) {
+    formatTime = `${dateObj.month + 1}月${dateObj.date}日`;
+  } else {
+    formatTime = `${dateObj.year}年${dateObj.month + 1}月${dateObj.date}日`;
+  }
+  return formatTime;
+}
+
+// 初始化数据
+function initData() {
+  getComment(route.params.id, page.value).then((res) => {
+    hotComments.value = res.hotComments;
+    commentList.value = res.comments;
+    total.value = res.total;
+    lockUp.value = true;
+    _hideLoad();
+  });
+}
+
+// 列表滚动
+function listScroll(e) {
+  if (lockUp.value) return;
+
+  const { scrollTop, scrollHeight, offsetHeight } = e.target;
+  if (scrollTop + offsetHeight >= scrollHeight - 100) {
+    lockUp.value = true;
+    page.value += 1;
+    pullUp();
+  }
+}
+
+// 滚动加载
+function pullUp() {
+  getComment(route.params.id, page.value).then(({ comments }) => {
+    commentList.value = [...commentList.value, ...comments];
+  });
 }
 </script>
 
