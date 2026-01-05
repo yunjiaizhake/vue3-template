@@ -53,9 +53,9 @@ import playerCover from '../../assets/img/player_cover.png';
 type LyricLine = { text: string };
 const props = withDefaults(
   defineProps<{
-    lyric: LyricLine[];
-    nolyric: boolean;
-    lyricIndex: number;
+    lyric: LyricLine[]; // 当前播放歌曲的歌词内容
+    nolyric: boolean; // 标识当前歌曲是否没有歌词
+    lyricIndex: number; // 当前播放的歌词行索引
   }>(),
   {
     lyric: () => [],
@@ -180,6 +180,7 @@ defineExpose({
     .no-wrap();
     .on {
       color: @lyric_color_active;
+      transform: scale(1.5);
     }
   }
 }

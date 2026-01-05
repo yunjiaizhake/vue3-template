@@ -4,7 +4,7 @@
       <div class="music-left flex-col">
         <music-btn @onClickLyric="handleOpenLyric" />
         <router-view v-slot="{ Component }">
-          <keep-alive v-if="$route.meta.keepAlive">
+          <keep-alive v-if="route.meta.keepAlive">
             <component :is="Component" class="router-view" />
           </keep-alive>
           <component
@@ -14,17 +14,17 @@
             class="router-view"
           />
         </router-view>
-        <router-view
+        <!-- <router-view
           v-if="!$route.meta.keepAlive"
           :key="$route.path"
           class="router-view"
-        />
+        /> -->
       </div>
       <div class="music-right" :class="{ show: lyricVisible }">
         <div class="close-lyric" @click="handleCloseLyric">关闭歌词</div>
         <lyric
           ref="lyricRef"
-          :lyric="lyric.value"
+          :lyric="lyric"
           :nolyric="nolyric"
           :lyric-index="lyricIndex"
         />
@@ -205,50 +205,71 @@ watch(route, () => {
 // -------------------- 生命周期 --------------------
 onMounted(() => {
   nextTick(() => {
-    mmPlayerMusic.initAudio({
-      audioEle,
-      currentMusic: currentMusic.value,
-      currentTime,
-      currentProgress,
-      musicReady,
-      mode,
-      playlist,
-      historyList,
-      setPlaying: store.setPlaying,
-      next,
-      loop,
-      setHistory: store.setHistory,
-      toast: proxy.$mmToast, // 传入全局toast
-    });
+    if (audioEle.value) {
+      initPlayer();
+    }
     initKeyDown();
     volumeChange(volume.value);
   });
 });
 
+watch(audioEle, (newEle) => {
+  if (newEle) {
+    initPlayer();
+  }
+});
+
 // -------------------- 方法 --------------------
+function initPlayer() {
+  mmPlayerMusic.initAudio({
+    audioEle,
+    currentMusic,
+    currentTime,
+    currentProgress,
+    musicReady,
+    mode,
+    playlist,
+    historyList,
+    setPlaying: store.setPlaying,
+    next,
+    loop,
+    setHistory: store.setHistory,
+    toast: proxy.$mmToast, // 传入全局toast
+  });
+}
+
 function initKeyDown() {
   document.onkeydown = (e) => {
     switch (e.ctrlKey && e.keyCode) {
-      case 32:
+      case ' ':
+        e.preventDefault();
         play();
         break;
-      case 37:
+
+      case 'ArrowLeft':
         prev();
         break;
-      case 38:
-        let plus = Number((volume.value += 0.1).toFixed(1));
+
+      case 'ArrowUp': {
+        let plus = Number((volume.value + 0.1).toFixed(1));
         if (plus > 1) plus = 1;
         volumeChange(plus);
         break;
-      case 39:
+      }
+
+      case 'ArrowRight':
         next();
         break;
-      case 40:
-        let reduce = Number((volume.value -= 0.1).toFixed(1));
+
+      case 'ArrowDown': {
+        let reduce = Number((volume.value - 0.1).toFixed(1));
         if (reduce < 0) reduce = 0;
         volumeChange(reduce);
         break;
-      case 79:
+      }
+
+      case 'o':
+      case 'O':
         modeChange();
         break;
     }
@@ -262,15 +283,15 @@ function prev() {
   } else {
     let index = currentIndex.value - 1;
     if (index < 0) index = playlist.value.length - 1;
-    store.currentIndex = index;
-    if (!playing.value && musicReady.value) store.commit('SET_PLAYING', true);
+    store.setCurrentIndex(index);
+    if (!playing.value && musicReady.value) store.setPlaying(true);
     musicReady.value = false;
   }
 }
 
 function play() {
   if (!musicReady.value) return;
-  store.playing = !playing.value;
+  store.setPlaying(!playing.value);
 }
 
 function next(flag = false) {
@@ -280,8 +301,8 @@ function next(flag = false) {
     (length - 1 === currentIndex.value && mode.value === PLAY_MODE.ORDER) ||
     (length === 1 && flag)
   ) {
-    store.currentIndex = -1;
-    store.playing = false;
+    store.setCurrentIndex(-1);
+    store.setPlaying(false);
     return;
   }
   if (length === 1) {
@@ -289,8 +310,8 @@ function next(flag = false) {
   } else {
     let index = currentIndex.value + 1;
     if (index === length) index = 0;
-    if (!playing.value && musicReady.value) store.commit('SET_PLAYING', true);
-    store.currentIndex = index;
+    if (!playing.value && musicReady.value) store.setPlaying(true);
+    store.setCurrentIndex(index);
     musicReady.value = false;
   }
 }
@@ -298,7 +319,7 @@ function next(flag = false) {
 function loop() {
   audioEle.value.currentTime = 0;
   silencePromise(audioEle.value.play());
-  store.playing = true;
+  store.setPlaying(true);
   if (lyric.value.length > 0) lyricIndex.value = 0;
 }
 
@@ -330,7 +351,7 @@ function modeChange() {
 
 function resetCurrentIndex(list) {
   const index = list.findIndex((item) => item.id === currentMusic.value.id);
-  store.currentIndex = index;
+  store.setCurrentIndex(index);
 }
 
 function openComment() {
@@ -383,6 +404,7 @@ function _getLyric(id) {
     if (res.lrc && res.lrc.lyric) {
       nolyric.value = false;
       lyric.value = parseLyric(res.lrc.lyric);
+      console.log('1111111111111111111', lyric.value);
     } else {
       nolyric.value = true;
     }

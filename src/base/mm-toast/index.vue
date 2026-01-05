@@ -1,7 +1,7 @@
 <template>
   <!--弹出层提示-->
   <transition name="toast-fade">
-    <div v-show="visible" class="mm-toast" :class="positionClasss">
+    <div v-if="visible" class="mm-toast" :class="positionClasss">
       {{ message }}
     </div>
   </transition>
@@ -51,18 +51,33 @@ defineExpose({ visible, message, position, duration });
   }
 }
 
-.toast-fade-enter {
+.toast-fade-enter-from {
   opacity: 0;
   transform: translate3d(-50%, -10px, 0);
 }
 
 .toast-fade-enter-active {
   will-change: transform;
-  transition: all 0.2s;
+  transition: all 0.5s;
 }
 
 .toast-fade-enter-to {
   opacity: 1;
   transform: translate3d(-50%, 0, 0);
+}
+
+.toast-fade-leave-from {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0);
+}
+
+.toast-fade-leave-active {
+  will-change: transform, opacity;
+  transition: all 0.5s;
+}
+
+.toast-fade-leave-to {
+  opacity: 0;
+  transform: translate3d(-50%, 10px, 0);
 }
 </style>

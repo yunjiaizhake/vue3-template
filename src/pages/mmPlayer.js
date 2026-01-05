@@ -21,7 +21,7 @@ const mmPlayerMusic = {
       toast, // 传入全局toast函数
     } = ctx
 
-    const ele = audioEle
+    const ele = audioEle.value
 
     // 音频缓冲事件
     ele.onprogress = () => {

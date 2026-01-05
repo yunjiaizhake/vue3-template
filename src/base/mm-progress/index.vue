@@ -31,9 +31,9 @@ const props = defineProps({
 
 const emit = defineEmits(['percentChange', 'percentChangeEnd']);
 
-const mmProgress = ref(null);
-const mmPercentProgress = ref(null);
-const mmProgressInner = ref(null);
+const mmProgress = useTemplateRef('mmProgress');
+const mmPercentProgress = useTemplateRef('mmPercentProgress');
+const mmProgressInner = useTemplateRef('mmProgressInner');
 
 const move = ref({
   status: false, // 是否可拖动
@@ -41,7 +41,7 @@ const move = ref({
   left: 0, // 记录当前已经移动的距离
 });
 
-// --- Watchers ---
+// ------------- Watchers -------------
 watch(
   () => props.percent,
   (newPercent) => {
@@ -75,7 +75,7 @@ onBeforeUnmount(() => {
   unbindEvents();
 });
 
-// --- Methods ---
+// ------------- Methods -------------
 function bindEvents() {
   document.addEventListener('mousemove', barMove);
   document.addEventListener('mouseup', barUp);
