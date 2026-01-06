@@ -1,24 +1,24 @@
 <template>
-  <transition name="mm-dialog-fade">
-    <div v-show="dialogShow" class="mm-dialog-box">
-      <div class="mm-dialog-wrapper">
-        <div class="mm-dialog-content">
-          <div class="mm-dialog-head" v-text="headText"></div>
+  <transition name="bb-dialog-fade">
+    <div v-show="dialogShow" class="bb-dialog-box" ref="dialogRef">
+      <div class="bb-dialog-wrapper">
+        <div class="bb-dialog-content">
+          <div class="bb-dialog-head" v-text="headText"></div>
           <slot>
             <!-- eslint-disable-next-line vue/no-v-html -->
-            <div class="mm-dialog-text" v-html="bodyText"></div>
+            <div class="bb-dialog-text" v-html="bodyText"></div>
           </slot>
 
-          <div class="mm-dialog-btns">
+          <div class="bb-dialog-btns">
             <div
               v-if="dialogType !== 'alert'"
-              class="mm-btn-cancel"
+              class="bb-btn-cancel"
               @click="cancel"
               v-text="cancelBtnText"
             ></div>
             <slot name="btn"></slot>
             <div
-              class="mm-btn-confirm"
+              class="bb-btn-confirm"
               @click="confirm"
               v-text="confirmBtnText"
             ></div>
@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-// -------- props --------
+// ------------------------------ props ------------------------------
 const props = defineProps({
   type: { type: String, default: 'confirm' },
   headText: { type: String, default: '提示' },
@@ -40,30 +40,30 @@ const props = defineProps({
   appendToBody: { type: Boolean, default: true },
 });
 
-// -------- emit --------
+// ------------------------------ emit ------------------------------
 const emit = defineEmits(['cancel', 'confirm']);
 
-// -------- state --------
+// ------------------------------ state ------------------------------
 const dialogShow = ref(false);
 
-// -------- computed --------
+// ------------------------------ computed ------------------------------
 const dialogType = computed(() => props.type.toLowerCase());
 
-// -------- watch --------
+// ------------------------------ watch ------------------------------
 watch(dialogShow, async (val) => {
   if (val && props.appendToBody) {
     await nextTick();
-    document.body.appendChild(dialogRef.value);
+    document.body.appendChild(dialogRef.value!);
   }
 });
 
-// -------- ref --------
-const dialogRef = ref(null);
+// ------------------------------ ref ------------------------------
+const dialogRef = useTemplateRef<HTMLInputElement | null>('dialogRef');
 
-// -------- 生命周期 --------
+// ------------------------------ 生命周期 ------------------------------
 onMounted(() => {
   if (dialogShow.value && props.appendToBody) {
-    document.body.appendChild(dialogRef.value);
+    document.body.appendChild(dialogRef.value!);
   }
 });
 
@@ -73,7 +73,7 @@ onBeforeUnmount(() => {
   }
 });
 
-// -------- methods --------
+// ------------------------------ methods ------------------------------
 function show() {
   dialogShow.value = true;
 }
@@ -92,7 +92,7 @@ function confirm() {
   emit('confirm');
 }
 
-// -------- expose methods --------
+// ------------------------------ expose methods ------------------------------
 defineExpose({
   show,
   hide,
@@ -100,7 +100,7 @@ defineExpose({
 </script>
 
 <style lang="less">
-@dialog-prefix-cls: mm-dialog;
+@dialog-prefix-cls: bb-dialog;
 
 .@{dialog-prefix-cls}-box {
   position: fixed;
@@ -114,9 +114,9 @@ defineExpose({
   backdrop-filter: @backdrop_filter;
 
   &.@{dialog-prefix-cls}-fade-enter-active {
-    animation: mm-dialog-fadein 0.3s;
+    animation: bb-dialog-fadein 0.3s;
     .@{dialog-prefix-cls}-content {
-      animation: mm-dialog-zoom 0.3s;
+      animation: bb-dialog-zoom 0.3s;
     }
   }
 
@@ -202,7 +202,7 @@ defineExpose({
   }
 }
 
-@keyframes mm-dialog-fadein {
+@keyframes bb-dialog-fadein {
   0% {
     opacity: 0;
   }
@@ -211,7 +211,7 @@ defineExpose({
   }
 }
 
-@keyframes mm-dialog-zoom {
+@keyframes bb-dialog-zoom {
   0% {
     transform: scale(0);
   }

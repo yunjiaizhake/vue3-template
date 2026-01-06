@@ -1,6 +1,9 @@
 /* 背景图（可引入网络图或本地静态图） */
-const backgroundModules = import.meta.glob('./assets/background/*', { eager: true, import: 'default' })
-const BACKGROUNDS = Object.values(backgroundModules)
+const backgroundModules = import.meta.glob('./assets/background/*', {
+  eager: true,
+  import: 'default',
+});
+const BACKGROUNDS = Object.values(backgroundModules);
 
 /**
  * 播放模式
@@ -14,7 +17,7 @@ export const PLAY_MODE = {
   ORDER: 1,
   RANDOM: 2,
   LOOP: 3,
-}
+};
 
 /**
  * 播放器默认配置
@@ -31,7 +34,7 @@ export const MMPLAYER_CONFIG = {
   VOLUME: 0.8,
   /* 默认背景 */
   BACKGROUND: BACKGROUNDS[Math.floor(Math.random() * BACKGROUNDS.length)],
-}
+};
 
 /* 默认分页数量 */
-export const DEFAULT_LIMIT = 30
+export const DEFAULT_LIMIT = 30;

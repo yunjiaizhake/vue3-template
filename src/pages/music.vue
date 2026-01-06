@@ -37,7 +37,7 @@
       :class="{ disable: !musicReady || !currentMusic.id }"
     >
       <div class="music-bar-btns">
-        <mm-icon
+        <bb-icon
           class="pointer"
           type="prev"
           :size="36"
@@ -49,9 +49,9 @@
           title="播放暂停 Ctrl + Space"
           @click="play"
         >
-          <mm-icon :type="playing ? 'pause' : 'play'" :size="24" />
+          <bb-icon :type="playing ? 'pause' : 'play'" :size="24" />
         </div>
-        <mm-icon
+        <bb-icon
           class="pointer"
           type="next"
           :size="36"
@@ -70,7 +70,7 @@
         <div v-if="currentMusic.id" class="music-bar-time">
           {{ format(currentTime) }}/{{ format(currentMusic.duration % 3600) }}
         </div>
-        <mm-progress
+        <bb-progress
           class="music-progress"
           :percent="percentMusic"
           :percent-progress="currentProgress"
@@ -80,7 +80,7 @@
       </div>
 
       <!-- 播放模式 -->
-      <mm-icon
+      <bb-icon
         class="icon-color pointer mode"
         :type="getModeIconType()"
         :title="getModeIconTitle()"
@@ -89,7 +89,7 @@
       />
 
       <!-- 评论 -->
-      <mm-icon
+      <bb-icon
         class="icon-color pointer comment"
         type="comment"
         :size="30"
@@ -108,10 +108,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { usePlayerStore } from '@/stores/index.ts';
 import { getLyric } from '@/api';
-import mmPlayerMusic from './mmPlayer';
+import bbPlayerMusic from './bbPlayer';
 import {
   randomSortArray,
   parseLyric,
@@ -121,12 +121,12 @@ import {
 import { PLAY_MODE, MMPLAYER_CONFIG } from '@/config';
 import { getVolume, setVolume } from '@/utils/storage';
 
-import MmProgress from '@/base/mm-progress/index.vue';
+import BbProgress from '@/base/bb-progress/index.vue';
 import MusicBtn from '@/components/music-btn/index.vue';
 import Lyric from '@/components/lyric/index.vue';
 import Volume from '@/components/volume/index.vue';
 
-// -------------------- 数据 --------------------
+// ------------------------------ 数据 ------------------------------
 const volume = ref(getVolume());
 const musicReady = ref(false);
 const currentTime = ref(0);
@@ -137,10 +137,10 @@ const nolyric = ref(false);
 const lyricIndex = ref(0);
 const isMute = ref(false);
 
-const { proxy } = getCurrentInstance(); // 拿到当前实例
+const { proxy } = getCurrentInstance()!; // 拿到当前实例
 const lyricRef = useTemplateRef('lyricRef');
 
-// -------------------- 路由 & store --------------------
+// ------------------------------ 路由 & store ------------------------------
 const route = useRoute();
 const router = useRouter();
 const store = usePlayerStore();
@@ -154,7 +154,7 @@ const currentIndex = computed(() => store.currentIndex);
 const currentMusic = computed(() => store.currentMusic);
 const historyList = computed(() => store.historyList);
 
-// -------------------- 计算属性 --------------------
+// ------------------------------ 计算属性 ------------------------------
 const picUrl = computed(() => {
   return currentMusic.value.id && currentMusic.value.image
     ? `url(${currentMusic.value.image}?param=300y300)`
@@ -166,7 +166,7 @@ const percentMusic = computed(() => {
   return currentTime.value && duration ? currentTime.value / duration : 0;
 });
 
-// -------------------- watch --------------------
+// ------------------------------ watch ------------------------------
 watch(currentMusic, (newMusic, oldMusic) => {
   if (!newMusic.id) {
     lyric.value = [];
@@ -174,9 +174,9 @@ watch(currentMusic, (newMusic, oldMusic) => {
   }
   if (newMusic.id === oldMusic.id) return;
 
-  audioEle.value.src = newMusic.url;
+  audioEle.value!.src = newMusic.url;
   lyricIndex.value = currentTime.value = currentProgress.value = 0;
-  silencePromise(audioEle.value.play());
+  silencePromise(audioEle.value!.play());
   nextTick(() => {
     _getLyric(newMusic.id);
   });
@@ -184,7 +184,9 @@ watch(currentMusic, (newMusic, oldMusic) => {
 
 watch(playing, (newPlaying) => {
   nextTick(() => {
-    newPlaying ? silencePromise(audioEle.value.play()) : audioEle.value.pause();
+    newPlaying
+      ? silencePromise(audioEle.value!.play())
+      : audioEle.value!.pause();
     musicReady.value = true;
   });
 });
@@ -202,7 +204,7 @@ watch(route, () => {
   lyricVisible.value = false;
 });
 
-// -------------------- 生命周期 --------------------
+// ------------------------------ 生命周期 ------------------------------
 onMounted(() => {
   nextTick(() => {
     if (audioEle.value) {
@@ -219,9 +221,9 @@ watch(audioEle, (newEle) => {
   }
 });
 
-// -------------------- 方法 --------------------
+// ------------------------------ 方法 ------------------------------
 function initPlayer() {
-  mmPlayerMusic.initAudio({
+  bbPlayerMusic.initAudio({
     audioEle,
     currentMusic,
     currentTime,
@@ -234,44 +236,44 @@ function initPlayer() {
     next,
     loop,
     setHistory: store.setHistory,
-    toast: proxy.$mmToast, // 传入全局toast
+    toast: proxy?.$bbToast, // 传入全局toast
   });
 }
 
 function initKeyDown() {
   document.onkeydown = (e) => {
-    switch (e.ctrlKey && e.keyCode) {
-      case ' ':
-        e.preventDefault();
-        play();
-        break;
+    if (e.ctrlKey) {
+      switch (e.key) {
+        case ' ':
+          e.preventDefault();
+          play();
+          break;
 
-      case 'ArrowLeft':
-        prev();
-        break;
+        case 'ArrowLeft':
+          prev();
+          break;
 
-      case 'ArrowUp': {
-        let plus = Number((volume.value + 0.1).toFixed(1));
-        if (plus > 1) plus = 1;
-        volumeChange(plus);
-        break;
+        case 'ArrowRight':
+          next();
+          break;
+
+        case 'ArrowUp': {
+          const plus = Math.min(1, Number((volume.value + 0.1).toFixed(1)));
+          volumeChange(plus);
+          break;
+        }
+
+        case 'ArrowDown': {
+          const reduce = Math.max(0, Number((volume.value - 0.1).toFixed(1)));
+          volumeChange(reduce);
+          break;
+        }
+
+        case 'o':
+        case 'O':
+          modeChange();
+          break;
       }
-
-      case 'ArrowRight':
-        next();
-        break;
-
-      case 'ArrowDown': {
-        let reduce = Number((volume.value - 0.1).toFixed(1));
-        if (reduce < 0) reduce = 0;
-        volumeChange(reduce);
-        break;
-      }
-
-      case 'o':
-      case 'O':
-        modeChange();
-        break;
     }
   };
 }
@@ -317,7 +319,7 @@ function next(flag = false) {
 }
 
 function loop() {
-  audioEle.value.currentTime = 0;
+  audioEle.value!.currentTime = 0;
   silencePromise(audioEle.value.play());
   store.setPlaying(true);
   if (lyric.value.length > 0) lyricIndex.value = 0;
@@ -328,7 +330,7 @@ function progressMusic(percent) {
 }
 
 function progressMusicEnd(percent) {
-  audioEle.value.currentTime = currentMusic.value.duration * percent;
+  audioEle.value!.currentTime = currentMusic.value.duration * percent;
 }
 
 function modeChange() {
@@ -356,7 +358,7 @@ function resetCurrentIndex(list) {
 
 function openComment() {
   if (!currentMusic.value.id) {
-    window.$mmToast('还没有播放歌曲哦！');
+    window.$bbToast('还没有播放歌曲哦！');
     return false;
   }
   router.push(`/music/comment/${currentMusic.value.id}`);
@@ -365,7 +367,7 @@ function openComment() {
 function volumeChange(percent) {
   isMute.value = percent === 0;
   volume.value = percent;
-  audioEle.value.volume = percent;
+  audioEle.value!.volume = percent;
   setVolume(percent);
 }
 
@@ -399,16 +401,15 @@ function handleCloseLyric() {
   lyricVisible.value = false;
 }
 
-function _getLyric(id) {
+function _getLyric(id: string) {
   getLyric(id).then((res) => {
     if (res.lrc && res.lrc.lyric) {
       nolyric.value = false;
       lyric.value = parseLyric(res.lrc.lyric);
-      console.log('1111111111111111111', lyric.value);
     } else {
       nolyric.value = true;
     }
-    silencePromise(audioEle.value.play());
+    silencePromise(audioEle.value!.play());
   });
 }
 </script>
@@ -591,7 +592,7 @@ function _getLyric(id) {
     .music-bar {
       padding-top: 10px;
       .music-bar-info span,
-      .music-bar-volume .mmProgress {
+      .music-bar-volume .bbprogress {
         display: none;
       }
     }

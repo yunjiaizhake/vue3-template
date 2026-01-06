@@ -1,5 +1,5 @@
 <template>
-  <header class="mm-header">
+  <header class="bb-header">
     <h1 class="header">
       <a href="https://github.com/maomao1996/Vue-mmPlayer" target="_blank">
         BbPlayer 在线音乐播放器
@@ -19,17 +19,17 @@
     </dl>
 
     <!-- 登录 -->
-    <mm-dialog
+    <bb-dialog
       ref="loginDialog"
       head-text="登录"
       confirm-btn-text="登录"
       cancel-btn-text="关闭"
       @confirm="login"
     >
-      <div class="mm-dialog-text">
+      <div class="bb-dialog-text">
         <input
           v-model.trim="uidValue"
-          class="mm-dialog-input"
+          class="bb-dialog-input"
           type="number"
           autofocus
           placeholder="请输入您的网易云 UID"
@@ -40,17 +40,17 @@
       <template #btn>
         <div @click="openDialog(1)">帮助</div>
       </template>
-    </mm-dialog>
+    </bb-dialog>
 
     <!-- 帮助 -->
-    <mm-dialog
+    <bb-dialog
       ref="helpDialog"
       head-text="登录帮助"
       confirm-btn-text="去登录"
       cancel-btn-text="关闭"
       @confirm="openDialog(0)"
     >
-      <div class="mm-dialog-text">
+      <div class="bb-dialog-text">
         <p>
           1、
           <a target="_blank" href="https://music.163.com">
@@ -62,10 +62,10 @@
         <p>3、点击头像进入主页</p>
         <p>4、复制 /user/home?id= 后面的数字</p>
       </div>
-    </mm-dialog>
+    </bb-dialog>
 
     <!-- 退出 -->
-    <mm-dialog
+    <bb-dialog
       ref="outDialog"
       body-text="确定退出当前用户吗？"
       @confirm="out"
@@ -73,28 +73,32 @@
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { usePlayerStore } from '@/stores/index.ts';
 import { getUserPlaylist } from '@/api';
-import MmDialog from '@/base/mm-dialog/index.vue';
+import BbDialog from '@/base/bb-dialog/index.vue';
 import { toHttps } from '@/utils/util';
+import type { Creator as UserItem } from '@/types/dataTypes';
 
-// ================= store =================
+// ------------------------------ store ------------------------------
 const store = usePlayerStore();
-const uid = computed(() => store.uid);
-const setUid = (uid) => store.setUid(uid);
+const uid = computed<string | null>(() => store.uid);
+const setUid = (uid: string | null) => store.setUid(uid);
 
-// ================= state =================
-const user = ref({});
-const uidValue = ref('');
+// ------------------------------ state ------------------------------
+const user = ref<Partial<UserItem>>({});
+const uidValue = ref<string>('');
 
-// ================= dialog refs =================
-const loginDialog = ref();
-const helpDialog = ref();
-const outDialog = ref();
+const { proxy } = getCurrentInstance()!;
 
-// ================= functions =================
-const openDialog = (key) => {
+// ------------------------------ refs ------------------------------
+const loginDialog =
+  useTemplateRef<InstanceType<typeof BbDialog>>('loginDialog');
+const helpDialog = useTemplateRef<InstanceType<typeof BbDialog>>('helpDialog');
+const outDialog = useTemplateRef<InstanceType<typeof BbDialog>>('outDialog');
+
+// ------------------------------ methods ------------------------------
+const openDialog = (key: number) => {
   switch (key) {
     case 0:
       loginDialog.value?.show();
@@ -116,13 +120,13 @@ const openDialog = (key) => {
 const out = () => {
   user.value = {};
   setUid(null);
-  window.$mmToast?.('退出成功！');
+  proxy!.$bbToast?.('退出成功！');
 };
 
 // 登录
 const login = () => {
   if (!uidValue.value) {
-    window.$mmToast?.('UID 不能为空');
+    proxy!.$bbToast?.('UID 不能为空');
     openDialog(0);
     return;
   }
@@ -131,12 +135,12 @@ const login = () => {
 };
 
 // 获取用户数据
-const app_getUserPlaylist = (uid) => {
+const app_getUserPlaylist = (uid: string) => {
   getUserPlaylist(uid).then(({ playlist = [] }) => {
     uidValue.value = '';
 
     if (!playlist.length || !playlist[0].creator) {
-      window.$mmToast?.(`未查询到 UID 为 ${uid} 的用户信息`);
+      proxy!.$bbToast?.(`未查询到 UID 为 ${uid} 的用户信息`);
       return;
     }
 
@@ -145,21 +149,22 @@ const app_getUserPlaylist = (uid) => {
 
     creator.avatarUrl = toHttps(creator.avatarUrl);
     user.value = creator;
+    console.log('user.value', user.value);
 
     setTimeout(() => {
-      window.$mmToast?.(`${user.value.nickname} 欢迎使用 BbPlayer`);
+      proxy!.$bbToast?.(`${user.value.nickname} 欢迎使用 BbPlayer`);
     }, 200);
   });
 };
 
-// ================= lifecycle =================
+// ------------------------------ 生命周期 ------------------------------
 onMounted(() => {
   if (uid.value) app_getUserPlaylist(uid.value);
 });
 </script>
 
 <style lang="less">
-.mm-header {
+.bb-header {
   position: absolute;
   top: 0;
   left: 0;
@@ -227,9 +232,9 @@ onMounted(() => {
     }
   }
 }
-.mm-dialog-text {
+.bb-dialog-text {
   text-align: left;
-  .mm-dialog-input {
+  .bb-dialog-input {
     width: 100%;
     height: 40px;
     box-sizing: border-box;

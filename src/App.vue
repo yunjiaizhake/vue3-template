@@ -1,37 +1,36 @@
 <template>
   <div id="app">
-    <mm-header />
+    <bb-header />
     <router-view />
-    <audio ref="mmPlayer"></audio>
+    <audio ref="bbPlayer"></audio>
 
     <!-- 显示当前播放歌曲 -->
     <div v-if="currentMusic.id">
-      <p>当前播放: {{ currentMusic.name }} - {{ currentMusic.artist }}</p>
+      <p>当前播放: {{ currentMusic.name }} - {{ currentMusic.singer }}</p>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { usePlayerStore } from '@/stores/index';
-import MmHeader from '@/components/music-header/index.vue';
-import MmDialog from '@/base/mm-dialog/index.vue';
+import BbHeader from '@/components/music-header/index.vue';
 import { getPlaylistDetail } from '@/api';
 import { MMPLAYER_CONFIG } from '@/config';
-import { getVersion, setVersion } from '@/utils/storage';
+import type { SongDetailItem } from '@/types/dataTypes';
 
-// 初始化 store
+// ------------------------------ store ------------------------------
 const playerStore = usePlayerStore();
 
-// refs
-const mmPlayer = ref(null);
+// ------------------------------ refs ------------------------------
+const bbPlayer = useTemplateRef<HTMLAudioElement | null>('bbPlayer');
 
-// getter 使用
-const currentMusic = computed(() => playerStore.currentMusic);
+// ------------------------------ computed ------------------------------
+const currentMusic = computed<SongDetailItem>(() => playerStore.currentMusic);
 
-// 初始化逻辑
+// ------------------------------ 生命周期 ------------------------------
 onMounted(async () => {
   // 设置audio元素
-  playerStore.setAudioEle(mmPlayer.value);
+  playerStore.setAudioEle(bbPlayer.value!);
 
   // 获取播放列表
   const playlist = await getPlaylistDetail(MMPLAYER_CONFIG.PLAYLIST_ID);
@@ -40,7 +39,7 @@ onMounted(async () => {
 
   // 设置title切换逻辑
   const OriginTitle = document.title;
-  let titleTime;
+  let titleTime: number;
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       document.title = '死鬼去哪里了！';
@@ -57,9 +56,9 @@ onMounted(async () => {
   let loadDOM = document.querySelector('#appLoading');
   if (loadDOM) {
     const animationendFunc = () => {
-      loadDOM.removeEventListener('animationend', animationendFunc);
-      loadDOM.removeEventListener('webkitAnimationEnd', animationendFunc);
-      document.body.removeChild(loadDOM);
+      loadDOM!.removeEventListener('animationend', animationendFunc);
+      loadDOM!.removeEventListener('webkitAnimationEnd', animationendFunc);
+      document.body.removeChild(loadDOM!);
       loadDOM = null;
     };
     loadDOM.addEventListener('animationend', animationendFunc);

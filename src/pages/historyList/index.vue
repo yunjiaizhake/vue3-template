@@ -14,7 +14,7 @@
       </template>
     </music-list>
 
-    <mm-dialog
+    <bb-dialog
       ref="dialogRef"
       body-text="是否清空播放历史列表"
       confirm-btn-text="清空"
@@ -26,27 +26,27 @@
 <script setup>
 import { usePlayerStore } from '@/stores';
 import MusicList from '@/components/music-list/index.vue';
-import MmDialog from '@/base/mm-dialog/index.vue';
+import BbDialog from '@/base/bb-dialog/index.vue';
 
-// -------------------- store --------------------
+// ------------------------------ store ------------------------------
 const store = usePlayerStore();
 
-// -------------------- refs --------------------
+// ------------------------------ refs ------------------------------
 const dialogRef = useTemplateRef('dialogRef');
 
-// -------------------- computed --------------------
+// ------------------------------ computed ------------------------------
 const historyList = computed(() => store.historyList);
 const playing = computed(() => store.playing);
 const currentMusic = computed(() => store.currentMusic);
 
-// -------------------- methods --------------------
+// ------------------------------ methods ------------------------------
 
 // 清空列表事件
 function clearList() {
   store.clearHistory();
   // 全局 toast（与 Vue2 一致）
-  window.$mmToast
-    ? window.$mmToast('列表清空成功')
+  window.$bbToast
+    ? window.$bbToast('列表清空成功')
     : console.log('列表清空成功');
 }
 
@@ -63,7 +63,7 @@ function deleteItem(index) {
   const list = [...historyList.value];
   list.splice(index, 1);
   store.removeHistory(list);
-  window.$mmToast ? window.$mmToast('删除成功') : console.log('删除成功');
+  window.$bbToast ? window.$bbToast('删除成功') : console.log('删除成功');
 }
 
 // 设置播放状态

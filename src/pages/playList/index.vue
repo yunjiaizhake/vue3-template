@@ -13,7 +13,7 @@
       </template>
     </music-list>
 
-    <mm-dialog
+    <bb-dialog
       ref="dialogRef"
       body-text="是否清空正在播放列表"
       confirm-btn-text="清空"
@@ -25,22 +25,22 @@
 <script setup>
 import { usePlayerStore } from '@/stores/index.ts';
 import MusicList from '@/components/music-list/index.vue';
-import MmDialog from '@/base/mm-dialog/index.vue';
+import BbDialog from '@/base/bb-dialog/index.vue';
 
-// -------- refs --------
+// ------------------------------ refs ------------------------------
 const dialogRef = ref(null);
 
-// -------- store --------
+// ------------------------------ store ------------------------------
 const store = usePlayerStore();
 
 const playlist = computed(() => store.playlist);
 const currentMusic = computed(() => store.currentMusic);
 const playing = computed(() => store.playing);
 
-// -------- methods --------
+// ------------------------------ methods ------------------------------
 function clearList() {
   store.clearPlayList();
-  window.$mmToast?.('列表清空成功');
+  window.$bbToast?.('列表清空成功');
 }
 
 function selectItem(item, index) {
@@ -54,6 +54,6 @@ function deleteItem(index) {
   const list = [...playlist.value];
   list.splice(index, 1);
   store.removerPlayListItem({ list, index });
-  window.$mmToast?.('删除成功');
+  window.$bbToast?.('删除成功');
 }
 </script>

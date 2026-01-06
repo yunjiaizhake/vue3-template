@@ -1,8 +1,8 @@
 <template>
   <!--排行榜，推荐-->
   <div class="topList">
-    <mm-loading :value="mmLoadShow" />
-    <template v-if="!mmLoadShow">
+    <bb-loading :value="bbLoadShow" />
+    <template v-if="!bbLoadShow">
       <div class="topList-head">云音乐特色榜</div>
       <div class="topList-content">
         <div
@@ -58,19 +58,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { getToplistDetail, getPersonalized } from '@/api';
-import MmLoading from '@/base/mm-loading/index.vue';
+import BbLoading from '@/base/bb-loading/index.vue';
 import { useLoad } from '@/hooks/useload';
+import type { ToplistItem, HotList } from '@/types/dataTypes';
 
-// -------------------- store & hooks --------------------
-const { mmLoadShow, _hideLoad } = useLoad();
+// ------------------------------ store & hooks ------------------------------
+const { bbLoadShow, _hideLoad } = useLoad();
 
-// -------------------- 数据 --------------------
-const list = ref([]); // 云音乐特色榜
-const hotList = ref([]); // 热门歌单
+// ------------------------------ 数据 ------------------------------
+const list = ref<ToplistItem[]>([]); // 云音乐特色榜
+const hotList = ref<HotList[]>([]); // 热门歌单
 
-// -------------------- 生命周期 --------------------
+// ------------------------------ 生命周期 ------------------------------
 onMounted(() => {
   Promise.all([getToplistDetail(), getPersonalized()])
     .then(([topList, hotListRes]) => {

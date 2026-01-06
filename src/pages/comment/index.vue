@@ -1,7 +1,7 @@
 <template>
   <!--评论-->
   <div class="comment" @scroll="listScroll">
-    <mm-loading :value="mmLoadShow" />
+    <bb-loading :value="bbLoadShow" />
 
     <dl v-if="hotComments.length > 0" class="comment-list">
       <dt class="comment-title">精彩评论</dt>
@@ -24,7 +24,7 @@
         <div class="comment-item-opt">
           <span class="comment-opt-date">{{ formatTime(item.time) }}</span>
           <span class="comment-opt-liked">
-            <mm-icon type="good" />
+            <bb-icon type="good" />
             {{ item.likedCount }}
           </span>
         </div>
@@ -77,7 +77,7 @@
         <div class="comment-item-opt">
           <span class="comment-opt-date">{{ formatTime(item.time) }}</span>
           <span v-if="item.likedCount > 0" class="comment-opt-liked">
-            <mm-icon type="good" />
+            <bb-icon type="good" />
             {{ item.likedCount }}
           </span>
         </div>
@@ -86,72 +86,44 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { getComment } from '@/api';
-import { addZero } from '@/utils/util';
-import MmLoading from '@/base/mm-loading/index.vue';
+import { formatTime } from '@/utils/util';
+import BbLoading from '@/base/bb-loading/index.vue';
 import { useLoad } from '@/hooks/useload';
+import type { CommentItem } from '@/types/dataTypes';
 
-// -------------------- 路由 & hooks --------------------
+// ------------------------------ 路由 & hooks ------------------------------
 const route = useRoute();
-const { mmLoadShow, _hideLoad } = useLoad();
+const { bbLoadShow, _hideLoad } = useLoad();
 
-// -------------------- 数据 --------------------
-const lockUp = ref(true);
-const page = ref(0);
-const hotComments = ref([]);
-const commentList = ref([]);
-const total = ref(null);
+// ------------------------------ 数据 ------------------------------
+const lockUp = ref<boolean>(true);
+const page = ref<number>(0);
+const hotComments = ref<CommentItem[]>([]);
+const commentList = ref<CommentItem[]>([]);
+const total = ref<number>(0);
 
-// -------------------- 监听 --------------------
+// ------------------------------ 监听 ------------------------------
 watch(commentList, (newList, oldList) => {
   if (newList.length !== oldList.length) {
     lockUp.value = false;
   }
 });
 
-// -------------------- 生命周期 --------------------
+// ------------------------------ 生命周期 ------------------------------
 onMounted(() => {
   initData();
 });
 
-// -------------------- 方法 --------------------
-
-// 格式化时间（原逻辑不变）
-function formatTime(time) {
-  let formatTime;
-  const date = new Date(time);
-  const dateObj = {
-    year: date.getFullYear(),
-    month: date.getMonth(),
-    date: date.getDate(),
-    hours: date.getHours(),
-    minutes: date.getMinutes(),
-  };
-  const newTime = new Date();
-  const diff = newTime.getTime() - time;
-
-  if (newTime.getDate() === dateObj.date && diff < 60000) {
-    formatTime = '刚刚';
-  } else if (newTime.getDate() === dateObj.date && diff < 3600000) {
-    formatTime = `${Math.floor(diff / 60000)}分钟前`;
-  } else if (newTime.getDate() === dateObj.date && diff < 86400000) {
-    formatTime = `${addZero(dateObj.hours)}:${addZero(dateObj.minutes)}`;
-  } else if (newTime.getDate() !== dateObj.date && diff < 86400000) {
-    formatTime = `昨天${addZero(dateObj.hours)}:${addZero(dateObj.minutes)}`;
-  } else if (newTime.getFullYear() === dateObj.year) {
-    formatTime = `${dateObj.month + 1}月${dateObj.date}日`;
-  } else {
-    formatTime = `${dateObj.year}年${dateObj.month + 1}月${dateObj.date}日`;
-  }
-  return formatTime;
-}
+// ------------------------------ 方法 ------------------------------
 
 // 初始化数据
 function initData() {
-  getComment(route.params.id, page.value).then((res) => {
+  getComment(route.params.id as string, page.value).then((res) => {
     hotComments.value = res.hotComments;
     commentList.value = res.comments;
+    console.log('hotComments.value', hotComments.value);
     total.value = res.total;
     lockUp.value = true;
     _hideLoad();
@@ -159,10 +131,10 @@ function initData() {
 }
 
 // 列表滚动
-function listScroll(e) {
+function listScroll(e: Event) {
   if (lockUp.value) return;
 
-  const { scrollTop, scrollHeight, offsetHeight } = e.target;
+  const { scrollTop, scrollHeight, offsetHeight } = e.target as HTMLElement;
   if (scrollTop + offsetHeight >= scrollHeight - 100) {
     lockUp.value = true;
     page.value += 1;
@@ -172,7 +144,7 @@ function listScroll(e) {
 
 // 滚动加载
 function pullUp() {
-  getComment(route.params.id, page.value).then(({ comments }) => {
+  getComment(route.params.id as string, page.value).then(({ comments }) => {
     commentList.value = [...commentList.value, ...comments];
   });
 }

@@ -9,7 +9,7 @@ export default defineConfig({
     vue(),
     AutoImport({
       imports: ['vue', 'vue-router', 'pinia'],
-      dts: 'src/auto-imports.d.ts', // 生成 TS 类型声明
+      dts: 'src/types/auto-imports.d.ts', // 生成 TS 类型声明
       eslintrc: {
         enabled: true, // 生成 eslint 配置
         filepath: './.eslintrc-auto-import.json',

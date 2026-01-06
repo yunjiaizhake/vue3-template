@@ -22,7 +22,7 @@
             <span>{{ item.name }}</span>
 
             <div class="list-menu">
-              <mm-icon
+              <bb-icon
                 class="hover"
                 :type="getPlayIconType(item)"
                 :size="40"
@@ -35,7 +35,7 @@
 
           <span v-if="isDuration" class="list-time">
             {{ format(item.duration % 3600) }}
-            <mm-icon
+            <bb-icon
               class="hover list-menu-icon-del"
               type="delete-mini"
               :size="40"
@@ -50,13 +50,13 @@
       </div>
     </template>
 
-    <mm-no-result v-else title="弄啥呢，怎么啥也没有！！！" />
+    <bb-no-result v-else title="弄啥呢，怎么啥也没有！！！" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { usePlayerStore } from '@/stores/index.ts';
-import MmNoResult from '@/base/mm-no-result/index.vue';
+import BbNoResult from '@/base/bb-no-result/index.vue';
 import { format } from '@/utils/util';
 
 const LIST_TYPE_ALBUM = 'album';
@@ -64,29 +64,29 @@ const LIST_TYPE_DURATION = 'duration';
 const LIST_TYPE_PULLUP = 'pullup';
 const THRESHOLD = 100;
 
-// -------- props --------
+// ------------------------------ props ------------------------------
 const props = defineProps({
   list: { type: Array, default: () => [] },
   listType: { type: String, default: LIST_TYPE_ALBUM },
 });
 
-// -------- emit --------
+// ------------------------------ emit ------------------------------
 const emit = defineEmits(['select', 'del', 'pullUp']);
 
-// -------- vuex --------
+// ------------------------------ store ------------------------------
 const store = usePlayerStore();
 const playing = computed(() => store.playing);
 const currentMusic = computed(() => store.currentMusic);
 
-// -------- state --------
+// ------------------------------ state ------------------------------
 const listContent = ref(null);
 const lockUp = ref(true);
 const scrollTop = ref(0);
 
-// -------- computed --------
+// ------------------------------ computed ------------------------------
 const isDuration = computed(() => props.listType === LIST_TYPE_DURATION);
 
-// -------- watch --------
+// ------------------------------ watch ------------------------------
 watch(
   () => props.list,
   (newList, oldList) => {
@@ -101,14 +101,14 @@ watch(
   },
 );
 
-// -------- keep-alive scroll 恢复 --------
+// ------------------------------ keep-alive scroll 恢复 ------------------------------
 onActivated(() => {
   if (scrollTop.value && listContent.value) {
     listContent.value.scrollTop = scrollTop.value;
   }
 });
 
-// -------- methods --------
+// ------------------------------ methods ------------------------------
 function listScroll(e) {
   const el = e.target;
   scrollTop.value = el.scrollTop;

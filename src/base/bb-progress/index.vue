@@ -1,14 +1,11 @@
 <template>
   <!--进度条拖动-->
-  <div ref="mmProgress" class="mmProgress" @click="barClick">
-    <div class="mmProgress-bar"></div>
-    <div ref="mmPercentProgress" class="mmProgress-outer"></div>
-    <div ref="mmProgressInner" class="mmProgress-inner">
-      <div
-        class="mmProgress-dot"
-        @mousedown="barDown"
-        @touchstart.prevent="barDown"
-      ></div>
+  <div ref="bbprogress" class="bbprogress" @click="barClick">
+    <div class="bbprogress-bar"></div>
+    <div ref="bbPercentProgress" class="bbprogress-outer"></div>
+    <div ref="bbProgressInner" class="bbprogress-inner">
+      <!--  @touchstart.prevent="barDown" -->
+      <div class="bbprogress-dot" @mousedown="barDown"></div>
     </div>
   </div>
 </template>
@@ -31,9 +28,13 @@ const props = defineProps({
 
 const emit = defineEmits(['percentChange', 'percentChangeEnd']);
 
-const mmProgress = useTemplateRef('mmProgress');
-const mmPercentProgress = useTemplateRef('mmPercentProgress');
-const mmProgressInner = useTemplateRef('mmProgressInner');
+const bbprogress = useTemplateRef<HTMLInputElement | null>('bbprogress');
+const bbPercentProgress = useTemplateRef<HTMLInputElement | null>(
+  'bbPercentProgress',
+);
+const bbProgressInner = useTemplateRef<HTMLInputElement | null>(
+  'bbProgressInner',
+);
 
 const move = ref({
   status: false, // 是否可拖动
@@ -41,12 +42,12 @@ const move = ref({
   left: 0, // 记录当前已经移动的距离
 });
 
-// ------------- Watchers -------------
+// ------------------------------ Watchers ------------------------------
 watch(
   () => props.percent,
   (newPercent) => {
     if (newPercent >= 0 && !move.value.status) {
-      const barWidth = mmProgress.value.clientWidth - dotWidth;
+      const barWidth = bbprogress.value!.clientWidth - dotWidth;
       const offsetWidth = newPercent * barWidth;
       moveSilde(offsetWidth);
     }
@@ -56,16 +57,16 @@ watch(
 watch(
   () => props.percentProgress,
   (newValue) => {
-    const offsetWidth = mmProgress.value.clientWidth * newValue;
-    mmPercentProgress.value.style.width = `${offsetWidth}px`;
+    const offsetWidth = bbprogress.value!.clientWidth * newValue;
+    bbPercentProgress.value!.style.width = `${offsetWidth}px`;
   },
 );
 
-// --- Lifecycle ---
+// ------------------------------ 生命周期 -------------------------------
 onMounted(() => {
   nextTick(() => {
     bindEvents();
-    const barWidth = mmProgress.value.clientWidth - dotWidth;
+    const barWidth = bbprogress.value!.clientWidth - dotWidth;
     const offsetWidth = props.percent * barWidth;
     moveSilde(offsetWidth);
   });
@@ -75,26 +76,26 @@ onBeforeUnmount(() => {
   unbindEvents();
 });
 
-// ------------- Methods -------------
+// ------------------------------ 方法 -------------------------------
 function bindEvents() {
   document.addEventListener('mousemove', barMove);
   document.addEventListener('mouseup', barUp);
-  document.addEventListener('touchmove', barMove);
-  document.addEventListener('touchend', barUp);
+  // document.addEventListener('touchmove', barMove);
+  // document.addEventListener('touchend', barUp);
 }
 
 function unbindEvents() {
   document.removeEventListener('mousemove', barMove);
   document.removeEventListener('mouseup', barUp);
-  document.removeEventListener('touchmove', barMove);
-  document.removeEventListener('touchend', barUp);
+  // document.removeEventListener('touchmove', barMove);
+  // document.removeEventListener('touchend', barUp);
 }
 
 // 点击事件
-function barClick(e) {
-  const rect = mmProgress.value.getBoundingClientRect();
+function barClick(e: MouseEvent) {
+  const rect = bbprogress.value!.getBoundingClientRect();
   const offsetWidth = Math.min(
-    mmProgress.value.clientWidth - dotWidth,
+    bbprogress.value!.clientWidth - dotWidth,
     Math.max(0, e.clientX - rect.left),
   );
   moveSilde(offsetWidth);
@@ -102,20 +103,22 @@ function barClick(e) {
 }
 
 // 鼠标按下事件
-function barDown(e) {
+function barDown(e: MouseEvent) {
   move.value.status = true;
-  move.value.startX = e.clientX || e.touches[0].pageX;
-  move.value.left = mmProgressInner.value.clientWidth;
+  // move.value.startX = e.clientX || e.touches[0].pageX;
+  move.value.startX = e.clientX;
+  move.value.left = bbProgressInner.value!.clientWidth;
 }
 
 // 鼠标/触摸移动事件
-function barMove(e) {
+function barMove(e: MouseEvent) {
   if (!move.value.status) return false;
   e.preventDefault();
-  const endX = e.clientX || e.touches[0].pageX;
+  // const endX = e.clientX || e.touches[0].pageX;
+  const endX = e.clientX;
   const dist = endX - move.value.startX;
   const offsetWidth = Math.min(
-    mmProgress.value.clientWidth - dotWidth,
+    bbprogress.value!.clientWidth - dotWidth,
     Math.max(0, move.value.left + dist),
   );
   moveSilde(offsetWidth);
@@ -131,31 +134,31 @@ function barUp() {
 }
 
 // 移动滑块
-function moveSilde(offsetWidth) {
-  mmProgressInner.value.style.width = `${offsetWidth}px`;
+function moveSilde(offsetWidth: number) {
+  bbProgressInner.value!.style.width = `${offsetWidth}px`;
 }
 
 // 修改 percent
 function commitPercent(isEnd = false) {
-  const lineWidth = mmProgress.value.clientWidth - dotWidth;
-  const percent = mmProgressInner.value.clientWidth / lineWidth;
+  const lineWidth = bbprogress.value!.clientWidth - dotWidth;
+  const percent = bbProgressInner.value!.clientWidth / lineWidth;
   emit(isEnd ? 'percentChangeEnd' : 'percentChange', percent);
 }
 </script>
 
 <style lang="less">
-.mmProgress {
+.bbprogress {
   position: relative;
   padding: 5px;
   user-select: none;
   cursor: pointer;
   overflow: hidden;
-  .mmProgress-bar {
+  .bbprogress-bar {
     height: 2px;
     width: 100%;
     background: @bar_color;
   }
-  .mmProgress-outer {
+  .bbprogress-outer {
     position: absolute;
     top: 50%;
     left: 5px;
@@ -165,7 +168,7 @@ function commitPercent(isEnd = false) {
     margin-top: -1px;
     background: rgba(255, 255, 255, 0.2);
   }
-  .mmProgress-inner {
+  .bbprogress-inner {
     position: absolute;
     top: 50%;
     left: 5px;
@@ -174,7 +177,7 @@ function commitPercent(isEnd = false) {
     height: 2px;
     margin-top: -1px;
     background: @line_color;
-    .mmProgress-dot {
+    .bbprogress-dot {
       position: absolute;
       top: 50%;
       right: -5px;

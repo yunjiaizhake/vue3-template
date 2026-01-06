@@ -1,7 +1,7 @@
 <template>
   <!--搜索-->
   <div class="search flex-col">
-    <mm-loading :value="mmLoadShow" />
+    <bb-loading :value="bbLoadShow" />
 
     <div class="search-head">
       <span
@@ -33,34 +33,34 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { usePlayerStore } from '@/stores';
 import { search, searchHot, getMusicDetail } from '@/api';
 import { formatSongs } from '@/utils/song';
-import MmLoading from '@/base/mm-loading/index.vue';
+import BbLoading from '@/base/bb-loading/index.vue';
 import MusicList from '@/components/music-list/index.vue';
 import { useLoad } from '@/hooks/useload';
 import { toHttps } from '@/utils/util';
+import type { ArtistsItem, SongDetailItem } from '@/types/dataTypes';
 
-// -------------------- store & hooks --------------------
+// ------------------------------ store & hooks ------------------------------
 const playerStore = usePlayerStore();
-const { mmLoadShow, _hideLoad } = useLoad();
+const { bbLoadShow, _hideLoad } = useLoad();
 
-// -------------------- refs --------------------
+// ------------------------------ refs ------------------------------
 const musicListRef = useTemplateRef('musicListRef');
 
-// -------------------- 数据 --------------------
-const searchValue = ref('');
-const Artists = ref([]);
-const list = ref([]);
-const page = ref(0);
+// ------------------------------ 数据 ------------------------------
+const searchValue = ref<string>('');
+const Artists = ref<ArtistsItem[]>([]);
+const list = ref<SongDetailItem[]>([]);
+const page = ref<number>(0);
 const lockUp = ref(true);
+const { proxy } = getCurrentInstance()!; // 拿到当前实例
 
-// -------------------- computed --------------------
-const playing = computed(() => playerStore.playing);
-const currentMusic = computed(() => playerStore.currentMusic);
+// ------------------------------ computed ------------------------------
 
-// -------------------- watch --------------------
+// ------------------------------ watch ------------------------------
 watch(list, (newList, oldList) => {
   if (!oldList.length) return;
 
@@ -73,19 +73,19 @@ watch(list, (newList, oldList) => {
   }
 });
 
-// -------------------- 生命周期 --------------------
+// ------------------------------ 生命周期 ------------------------------
 onMounted(() => {
   // 获取热搜
   searchHot().then(({ result }) => {
     Artists.value = result.hots.slice(0, 5);
-    mmLoadShow.value = false;
+    bbLoadShow.value = false;
   });
 });
 
-// -------------------- methods --------------------
+// ------------------------------ methods ------------------------------
 
 // 点击热搜
-function clickHot(name) {
+function clickHot(name: string) {
   searchValue.value = name;
   onEnter();
 }
@@ -93,11 +93,11 @@ function clickHot(name) {
 // 搜索事件
 function onEnter() {
   if (searchValue.value.replace(/(^\s+)|(\s+$)/g, '') === '') {
-    window.$mmToast && window.$mmToast('搜索内容不能为空！');
+    proxy?.$bbToast && proxy?.$bbToast('搜索内容不能为空！');
     return;
   }
 
-  mmLoadShow.value = true;
+  bbLoadShow.value = true;
   page.value = 0;
 
   if (list.value.length > 0) {
@@ -116,7 +116,7 @@ function pullUpLoad() {
 
   search(searchValue.value, page.value).then(({ result }) => {
     if (!result.songs) {
-      window.$mmToast && window.$mmToast('没有更多歌曲啦！');
+      proxy?.$bbToast && proxy?.$bbToast('没有更多歌曲啦！');
       return;
     }
     list.value = [...list.value, ...formatSongs(result.songs)];
@@ -124,23 +124,19 @@ function pullUpLoad() {
 }
 
 // 播放歌曲
-async function selectItem(music) {
+async function selectItem(music: SongDetailItem) {
   try {
     const image = await _getMusicDetail(music.id);
     music.image = toHttps(image);
     playerStore.selectAddPlay(music);
   } catch (error) {
-    window.$mmToast && window.$mmToast('哎呀，出错啦~');
+    proxy?.$bbToast && proxy?.$bbToast('哎呀，出错啦~');
   }
 }
 
 // 获取歌曲详情
-function _getMusicDetail(id) {
+function _getMusicDetail(id: string) {
   return getMusicDetail(id).then((res) => res.songs[0].al.picUrl);
-}
-
-function setPlaying(value) {
-  playerStore.setPlaying(value);
 }
 </script>
 

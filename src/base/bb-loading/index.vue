@@ -2,10 +2,10 @@
   <!--加载动画-->
   <div
     v-show="value"
-    class="mm-loading"
+    class="bb-loading"
     :style="{ backgroundColor: loadingBgColor }"
   >
-    <div class="mm-loading-content">
+    <div class="bb-loading-content">
       <svg class="circular" viewBox="25 25 50 50">
         <circle class="path" cx="50" cy="50" r="20" fill="none"></circle>
       </svg>
@@ -29,7 +29,7 @@ const props = defineProps({
 </script>
 
 <style lang="less">
-.mm-loading {
+.bb-loading {
   position: absolute;
   top: 0;
   left: 0;
@@ -37,7 +37,7 @@ const props = defineProps({
   bottom: 0;
   z-index: 1996;
   background: @load_bg_color;
-  .mm-loading-content {
+  .bb-loading-content {
     position: absolute;
     top: 50%;
     width: 100%;

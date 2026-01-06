@@ -1,7 +1,7 @@
 <template>
   <!--歌单详情-->
   <div class="details">
-    <mm-loading :value="mmLoadShow" />
+    <bb-loading :value="bbLoadShow" />
     <music-list :list="list" @select="selectItem" />
   </div>
 </template>
@@ -11,20 +11,20 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { usePlayerStore } from '@/stores/index.ts';
 import { getPlaylistDetail } from '@/api';
-import MmLoading from '@/base/mm-loading/index.vue';
+import BbLoading from '@/base/bb-loading/index.vue';
 import MusicList from '@/components/music-list/index.vue';
 import { useLoad } from '@/hooks/useload';
 
-// -------------------- 路由 & hooks --------------------
+// ------------------------------ 路由 & hooks ------------------------------
 const route = useRoute();
-const { mmLoadShow, _hideLoad } = useLoad();
-// -------------------- 数据管理 --------------------
+const { bbLoadShow, _hideLoad } = useLoad();
+// ------------------------------ 数据管理 ------------------------------
 const playerStore = usePlayerStore();
 
-// -------------------- 数据 --------------------
+// ------------------------------ 数据 ------------------------------
 const list = ref([]);
 
-// -------------------- 生命周期 --------------------
+// ------------------------------ 生命周期 ------------------------------
 onMounted(() => {
   // 获取歌单详情
   getPlaylistDetail(route.params.id)
@@ -38,7 +38,7 @@ onMounted(() => {
     });
 });
 
-// -------------------- 方法 --------------------
+// ------------------------------ 方法 ------------------------------
 
 // 播放暂停事件
 function selectItem(item, index) {

@@ -1,7 +1,7 @@
 <template>
   <!--我的歌单-->
   <div class="userList">
-    <mm-loading :value="mmLoadShow" />
+    <bb-loading :value="bbLoadShow" />
 
     <template v-if="list.length > 0">
       <div
@@ -26,61 +26,62 @@
       </div>
     </template>
 
-    <mm-no-result v-else title="啥也没有哦，快去登录看看吧！" />
+    <bb-no-result v-else title="啥也没有哦，快去登录看看吧！" />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { usePlayerStore } from '@/stores';
 import { getUserPlaylist } from '@/api';
-import MmLoading from '@/base/mm-loading/index.vue';
-import MmNoResult from '@/base/mm-no-result/index.vue';
+import BbLoading from '@/base/bb-loading/index.vue';
+import BbNoResult from '@/base/bb-no-result/index.vue';
 import { useLoad } from '@/hooks/useload';
+import type { PlaylistItem } from '@/types/dataTypes';
 
-// -------------------- store & hooks --------------------
+// ------------------------------ store & hooks ------------------------------
 const playerStore = usePlayerStore();
-const { mmLoadShow, _hideLoad } = useLoad();
+const { bbLoadShow, _hideLoad } = useLoad();
 
-// -------------------- 数据 --------------------
-const list = ref([]);
+// ------------------------------ 数据 ------------------------------
+const list = ref<PlaylistItem[]>([]);
 
-// -------------------- computed --------------------
-const uid = computed(() => playerStore.uid);
+// ------------------------------ computed ------------------------------
+const uid = computed<string | null>(() => playerStore.uid || null);
 
 const formatList = computed(() => {
   return list.value.filter((item) => item.trackCount > 0);
 });
 
-// -------------------- watch --------------------
+// ------------------------------ watch ------------------------------
 watch(uid, (newUid) => {
   if (newUid) {
-    mmLoadShow.value = true;
+    bbLoadShow.value = true;
     _getUserPlaylist(newUid);
   } else {
     list.value = [];
   }
 });
 
-// -------------------- 生命周期 --------------------
+// ------------------------------ 生命周期 ------------------------------
 onMounted(() => {
   if (!uid.value) {
-    mmLoadShow.value = false;
+    bbLoadShow.value = false;
   }
 });
 
 onActivated(() => {
   if (uid.value && list.value.length === 0) {
-    mmLoadShow.value = true;
+    bbLoadShow.value = true;
     _getUserPlaylist(uid.value);
   } else if (!uid.value && list.value.length !== 0) {
     list.value = [];
   }
 });
 
-// -------------------- methods --------------------
+// ------------------------------ methods ------------------------------
 
 // 获取我的歌单详情
-function _getUserPlaylist(uid) {
+function _getUserPlaylist(uid: string) {
   getUserPlaylist(uid).then((res) => {
     if (res.playlist.length === 0) {
       return;

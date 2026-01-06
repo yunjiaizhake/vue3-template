@@ -1,7 +1,14 @@
+import type { App } from 'vue';
 import TempToast from './index.vue';
 
-let instance = null;
-let timer = null;
+interface ToastInstance {
+  // InstanceType 给一个 构造函数类型（class 或 typeof MyComponent），返回它 实例的类型
+  vm: ComponentPublicInstance<InstanceType<typeof TempToast>>; // 组件实例类型
+  container: HTMLDivElement;
+}
+
+let instance: ToastInstance | null = null;
+let timer: number | null = null;
 
 const defaultOpt = {
   message: '',
@@ -18,15 +25,19 @@ const initInstance = () => {
 
   document.body.appendChild(container);
 
-  instance = { vm, container };
+  instance = { vm, container } as ToastInstance;
   return instance;
 };
 
-const mmToast = {
-  install(app, options = {}) {
+const bbToast = {
+  install(app: App, options = {}) {
     const opt = { ...defaultOpt, ...options };
 
-    app.config.globalProperties.$mmToast = (message, position) => {
+    // 这里把 position 可选属性去掉就会报错，是因为在.d.ts文件中写了可选；但是.d.ts文件中写必选但是这里可选不会报错
+    app.config.globalProperties.$bbToast = (
+      message: string,
+      position?: 'top' | 'center' | 'bottom',
+    ) => {
       const { vm } = initInstance();
 
       // 如果有未完成的计时器，先清掉
@@ -50,4 +61,4 @@ const mmToast = {
   },
 };
 
-export default mmToast;
+export default bbToast;

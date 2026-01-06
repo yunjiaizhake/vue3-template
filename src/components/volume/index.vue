@@ -1,6 +1,7 @@
 <template>
+  <!-- 音量 -->
   <div class="volume">
-    <mm-icon
+    <bb-icon
       class="pointer volume-icon"
       :type="getVolumeIconType()"
       :size="30"
@@ -8,7 +9,7 @@
     />
 
     <div class="volume-progress-wrapper">
-      <mm-progress
+      <bb-progress
         :percent="props.volume"
         @percentChange="handleVolumeChange"
         @percentChangeEnd="handleVolumeChange"
@@ -18,9 +19,9 @@
 </template>
 
 <script setup>
-import MmProgress from '@/base/mm-progress/index.vue';
+import BbProgress from '@/base/bb-progress/index.vue';
 
-// -------- props --------
+// ------------------------------ props ------------------------------
 const props = defineProps({
   volume: {
     type: Number,
@@ -28,10 +29,10 @@ const props = defineProps({
   },
 });
 
-// -------- emit --------
+// ------------------------------ emit ------------------------------
 const emit = defineEmits(['volumeChange']);
 
-// -------- 内部状态 --------
+// ------------------------------ 内部状态 ------------------------------
 const lastVolume = ref(props.volume);
 
 // 是否静音
@@ -46,7 +47,7 @@ const isMute = computed({
   },
 });
 
-// -------- methods --------
+// ------------------------------ methods ------------------------------
 function getVolumeIconType() {
   return isMute.value ? 'volume-off' : 'volume';
 }

@@ -16,7 +16,7 @@
         <dd>BbPlayer在线音乐播放器</dd>
         <dd>
           <a class="hover" target="_blank" href="https://github.com/maomao1996">
-            <mm-icon type="github" :size="14" />
+            <bb-icon type="github" :size="14" />
             &nbsp;波波
           </a>
         </dd>
@@ -48,8 +48,9 @@
 <script setup lang="ts">
 import { usePlayerStore } from '@/stores/index.ts';
 import playerCover from '../../assets/img/player_cover.png';
+import type { SongDetailItem } from '@/types/dataTypes';
 
-// ------------ props ------------
+// ------------------------------ props ------------------------------
 type LyricLine = { text: string };
 const props = withDefaults(
   defineProps<{
@@ -64,7 +65,7 @@ const props = withDefaults(
   },
 );
 
-// ------------ store ------------
+// ------------------------------ store ------------------------------
 const store = usePlayerStore();
 type Music = {
   id?: number | string;
@@ -73,9 +74,9 @@ type Music = {
   album?: string;
   image?: string;
 };
-const currentMusic = computed<Music>(() => store.currentMusic || {});
+const currentMusic = computed<SongDetailItem>(() => store.currentMusic || {});
 
-// ------------ state ------------
+// ------------------------------ state ------------------------------
 const musicLyric = ref<HTMLDivElement | null>(null);
 const top = ref(0);
 
@@ -91,7 +92,7 @@ const lyricTop = computed(() => {
   return `transform: translate3d(0, ${-34 * (props.lyricIndex - top.value)}px, 0)`;
 });
 
-// ------------ methods ------------
+// ------------------------------ methods ------------------------------
 const calcTop = () => {
   const dom = musicLyric.value;
   if (!dom) return;
@@ -103,11 +104,10 @@ const calcTop = () => {
   top.value = Math.floor(height / 34 / 2);
 };
 
-// ------------ lifecycle ------------
+// ------------------------------ 生命周期 ------------------------------
 let resizeTimer: number | null = null;
 
 onMounted(() => {
-  console.log('1111111111111111', props.lyric);
   window.addEventListener('resize', () => {
     resizeTimer && clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(calcTop, 60);

@@ -1,7 +1,7 @@
 <template>
   <!--弹出层提示-->
   <transition name="toast-fade">
-    <div v-if="visible" class="mm-toast" :class="positionClasss">
+    <div v-if="visible" class="bb-toast" :class="positionClasss">
       {{ message }}
     </div>
   </transition>
@@ -13,14 +13,14 @@ const message = ref(''); // 默认显示文本
 const position = ref('center'); // 默认显示位置
 const duration = ref(1500); // 显示时间, 毫秒
 
-const positionClasss = computed(() => 'mm-toast-' + position.value);
+const positionClasss = computed(() => 'bb-toast-' + position.value);
 
 // 暴露给外部实例，便于插件在运行时赋值控制
 defineExpose({ visible, message, position, duration });
 </script>
 
 <style lang="less">
-@prefix-cls: mm-toast;
+@prefix-cls: bb-toast;
 
 .@{prefix-cls} {
   position: fixed;

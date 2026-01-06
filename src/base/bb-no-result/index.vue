@@ -1,7 +1,7 @@
 <template>
   <!--暂无数据提示-->
-  <div class="mm-no-result">
-    <p class="mm-no-result-text">{{ title }}</p>
+  <div class="bb-no-result">
+    <p class="bb-no-result-text">{{ title }}</p>
   </div>
 </template>
 
@@ -16,7 +16,7 @@ const props = defineProps({
 </script>
 
 <style lang="less">
-.mm-no-result {
+.bb-no-result {
   display: flex;
   justify-content: center;
   align-items: center;
