@@ -8,12 +8,12 @@
         <span v-else class="list-album">专辑</span>
       </div>
 
-      <div ref="listContent" class="list-content" @scroll="listScroll">
+      <div ref="listContent" class="list-content" @scroll="listScroll($event)">
         <div
           v-for="(item, index) in list"
           :key="item.id"
           class="list-item"
-          :class="{ on: playing.value && currentMusic.value.id === item.id }"
+          :class="{ on: playing && currentMusic.id === item.id }"
           @dblclick="selectItem(item, index, $event)"
         >
           <span class="list-num">{{ index + 1 }}</span>
@@ -26,7 +26,7 @@
                 class="hover"
                 :type="getPlayIconType(item)"
                 :size="40"
-                @click.stop="selectItem(item, index)"
+                @click.stop="selectItem(item, index, $event)"
               />
             </div>
           </div>
@@ -58,6 +58,7 @@
 import { usePlayerStore } from '@/stores/index.ts';
 import BbNoResult from '@/base/bb-no-result/index.vue';
 import { format } from '@/utils/util';
+import type { SongObjectType } from '@/types/dataTypes';
 
 const LIST_TYPE_ALBUM = 'album';
 const LIST_TYPE_DURATION = 'duration';
@@ -66,7 +67,10 @@ const THRESHOLD = 100;
 
 // ------------------------------ props ------------------------------
 const props = defineProps({
-  list: { type: Array, default: () => [] },
+  list: {
+    type: Array as PropType<SongObjectType[]>,
+    default: () => [],
+  },
   listType: { type: String, default: LIST_TYPE_ALBUM },
 });
 
@@ -79,7 +83,7 @@ const playing = computed(() => store.playing);
 const currentMusic = computed(() => store.currentMusic);
 
 // ------------------------------ state ------------------------------
-const listContent = ref(null);
+const listContent = useTemplateRef<HTMLDivElement>('listContent');
 const lockUp = ref(true);
 const scrollTop = ref(0);
 
@@ -109,8 +113,8 @@ onActivated(() => {
 });
 
 // ------------------------------ methods ------------------------------
-function listScroll(e) {
-  const el = e.target;
+function listScroll(e: Event) {
+  const el = e.target as HTMLElement;
   scrollTop.value = el.scrollTop;
 
   if (props.listType !== LIST_TYPE_PULLUP || lockUp.value) return;
@@ -122,11 +126,12 @@ function listScroll(e) {
 }
 
 function scrollTo() {
-  listContent.value.scrollTop = 0;
+  listContent.value!.scrollTop = 0;
 }
 
-function selectItem(item, index, e) {
-  if (e && /list-menu-icon-del/.test(e.target.className)) return;
+function selectItem(item: SongObjectType, index: number, e: Event) {
+  const el = e.target as HTMLElement;
+  if (e && /list-menu-icon-del/.test(el.className)) return;
 
   if (currentMusic.value.id && item.id === currentMusic.value.id) {
     store.playing = !playing.value;
@@ -136,13 +141,13 @@ function selectItem(item, index, e) {
   emit('select', item, index);
 }
 
-function getPlayIconType({ id }) {
+function getPlayIconType({ id }: SongObjectType) {
   return playing.value && currentMusic.value.id === id
     ? 'pause-mini'
     : 'play-mini';
 }
 
-function deleteItem(index) {
+function deleteItem(index: number) {
   emit('del', index);
 }
 

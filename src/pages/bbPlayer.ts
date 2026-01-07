@@ -1,10 +1,25 @@
 import { PLAY_MODE } from '@/config';
-
+import type { SongDetailItem } from '@/types/dataTypes';
+interface BbPlayerMusicContext {
+  audioEle: ComputedRef<HTMLAudioElement | null>;
+  currentMusic: ComputedRef<SongDetailItem>;
+  currentTime: Ref<number>;
+  currentProgress: Ref<number>;
+  musicReady: Ref<boolean>;
+  mode: ComputedRef<number>;
+  playlist: ComputedRef<SongDetailItem[]>;
+  historyList: ComputedRef<SongDetailItem[]>;
+  setPlaying: (playing: boolean) => void;
+  next: (flag?: boolean) => void;
+  loop: () => void;
+  setHistory: (music: SongDetailItem) => void;
+  toast?: (message: string, position?: 'top' | 'center' | 'bottom') => void;
+}
 // 重试次数
 let retry = 1;
 
 const bbPlayerMusic = {
-  initAudio(ctx) {
+  initAudio(ctx: BbPlayerMusicContext) {
     const {
       audioEle,
       currentMusic,
@@ -21,7 +36,7 @@ const bbPlayerMusic = {
       toast, // 传入全局toast函数
     } = ctx;
 
-    const ele = audioEle.value;
+    const ele = audioEle.value!;
 
     // 音频缓冲事件
     ele.onprogress = () => {
@@ -32,7 +47,9 @@ const bbPlayerMusic = {
           buffered = buffered > duration ? duration : buffered;
           currentProgress.value = buffered / duration;
         }
-      } catch (e) {}
+      } catch (error) {
+        console.error(error);
+      }
     };
 
     // 开始播放音乐
@@ -83,7 +100,7 @@ const bbPlayerMusic = {
       retry = 1;
       if (
         historyList.value.length === 0 ||
-        currentMusic.value.id !== historyList.value[0].id
+        currentMusic.value.id !== historyList.value[0]?.id
       ) {
         setHistory(currentMusic.value);
       }

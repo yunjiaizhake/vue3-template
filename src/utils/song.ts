@@ -1,31 +1,36 @@
-import { toHttps } from './util'
+import { toHttps } from './util';
+import type {
+  Song as SongType,
+  SongObjectType,
+} from '@/types/dataTypes/song_detail';
 
-function filterSinger(singers) {
+function filterSinger(singers: SongType['ar']) {
   if (!Array.isArray(singers) || !singers.length) {
-    return ''
+    return '';
   }
-  let arr = []
+  let arr: string[] = [];
   singers.forEach((item) => {
-    arr.push(item.name)
-  })
-  return arr.join('/')
+    arr.push(item.name);
+  });
+  return arr.join('/');
 }
 
 export class Song {
-  constructor({ id, name, singer, album, image, duration, url }) {
-    this.id = id
-    this.name = name
-    this.singer = singer
-    this.album = album
-    this.image = image
-    this.duration = duration
-    this.url = url
+  id!: number;
+  name!: string;
+  singer!: string;
+  album!: string;
+  image!: string;
+  duration!: number;
+  url!: string;
+  constructor(data: SongObjectType) {
+    Object.assign(this, data);
   }
 }
 
-export function createSong(music) {
-  const album = music.album || music.al || {}
-  const duration = music.duration || music.dt
+export function createSong(music: SongType) {
+  const album = music.album || music.al || {};
+  const duration = music.duration || music.dt;
   return new Song({
     id: music.id,
     name: music.name,
@@ -34,17 +39,17 @@ export function createSong(music) {
     image: toHttps(album.picUrl) || null,
     duration: duration / 1000,
     url: `https://music.163.com/song/media/outer/url?id=${music.id}.mp3`,
-  })
+  });
 }
 
 // 歌曲数据格式化
-export function formatSongs(list) {
-  const Songs = []
+export function formatSongs(list: SongType[]) {
+  const Songs: SongObjectType[] = [];
   list.forEach((item) => {
-    const musicData = item
+    const musicData = item;
     if (musicData.id) {
-      Songs.push(createSong(musicData))
+      Songs.push(createSong(musicData));
     }
-  })
-  return Songs
+  });
+  return Songs;
 }

@@ -1,3 +1,4 @@
+// user/playlist 接口返回值类型 params : uid
 export interface PlaylistResponse {
   code: number;
   more: boolean;
@@ -43,7 +44,7 @@ export interface PlaylistItem {
   ordered: boolean;
   status: number;
   name: string;
-  id: number;
+  id: string;
   coverImgId_str: string;
   sharedUsers: string | null;
   shareStatus: string | null;

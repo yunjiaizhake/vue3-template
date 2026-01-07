@@ -125,17 +125,18 @@ import BbProgress from '@/base/bb-progress/index.vue';
 import MusicBtn from '@/components/music-btn/index.vue';
 import Lyric from '@/components/lyric/index.vue';
 import Volume from '@/components/volume/index.vue';
+import type { SongDetailItem, LyricLine } from '@/types/dataTypes';
 
 // ------------------------------ 数据 ------------------------------
-const volume = ref(getVolume());
-const musicReady = ref(false);
-const currentTime = ref(0);
-const currentProgress = ref(0);
-const lyricVisible = ref(false);
-const lyric = ref([]);
-const nolyric = ref(false);
-const lyricIndex = ref(0);
-const isMute = ref(false);
+const volume = ref<number>(getVolume());
+const musicReady = ref<boolean>(false);
+const currentTime = ref<number>(0);
+const currentProgress = ref<number>(0);
+const lyricVisible = ref<boolean>(false);
+const lyric = ref<LyricLine[]>([]);
+const nolyric = ref<boolean>(false);
+const lyricIndex = ref<number>(0);
+const isMute = ref<boolean>(false);
 
 const { proxy } = getCurrentInstance()!; // 拿到当前实例
 const lyricRef = useTemplateRef('lyricRef');
@@ -195,7 +196,7 @@ watch(currentTime, (newTime) => {
   if (nolyric.value) return;
   let index = 0;
   for (let i = 0; i < lyric.value.length; i++) {
-    if (newTime > lyric.value[i].time) index = i;
+    if (newTime > lyric.value[i]!.time) index = i;
   }
   lyricIndex.value = index;
 });
@@ -320,16 +321,16 @@ function next(flag = false) {
 
 function loop() {
   audioEle.value!.currentTime = 0;
-  silencePromise(audioEle.value.play());
+  silencePromise(audioEle.value!.play());
   store.setPlaying(true);
   if (lyric.value.length > 0) lyricIndex.value = 0;
 }
 
-function progressMusic(percent) {
+function progressMusic(percent: number) {
   currentTime.value = currentMusic.value.duration * percent;
 }
 
-function progressMusicEnd(percent) {
+function progressMusicEnd(percent: number) {
   audioEle.value!.currentTime = currentMusic.value.duration * percent;
 }
 
@@ -337,7 +338,7 @@ function modeChange() {
   const newMode = (mode.value + 1) % 4;
   store.setPlayMode(newMode);
   if (newMode === PLAY_MODE.LOOP) return;
-  let list = [];
+  let list: SongDetailItem[] = [];
   switch (newMode) {
     case PLAY_MODE.LIST_LOOP:
     case PLAY_MODE.ORDER:
@@ -351,20 +352,20 @@ function modeChange() {
   store.setPlaylist(list);
 }
 
-function resetCurrentIndex(list) {
+function resetCurrentIndex(list: SongDetailItem[]) {
   const index = list.findIndex((item) => item.id === currentMusic.value.id);
   store.setCurrentIndex(index);
 }
 
 function openComment() {
   if (!currentMusic.value.id) {
-    window.$bbToast('还没有播放歌曲哦！');
+    proxy!.$bbToast?.('还没有播放歌曲哦！');
     return false;
   }
   router.push(`/music/comment/${currentMusic.value.id}`);
 }
 
-function volumeChange(percent) {
+function volumeChange(percent: number) {
   isMute.value = percent === 0;
   volume.value = percent;
   audioEle.value!.volume = percent;

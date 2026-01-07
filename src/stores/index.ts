@@ -51,7 +51,7 @@ export const usePlayerStore = defineStore('player', {
     },
 
     // 修改播放列表
-    setPlaylist({ list }: { list: SongDetailItem[] }) {
+    setPlaylist(list: SongDetailItem[]) {
       this.playlist = list;
       this.orderList = list;
     },

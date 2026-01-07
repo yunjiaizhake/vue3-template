@@ -5,7 +5,7 @@
 
     <div class="search-head">
       <span
-        v-for="(item, index) in Artists"
+        v-for="(item, index) in HotList"
         :key="index"
         @click="clickHot(item.first)"
       >
@@ -41,7 +41,12 @@ import BbLoading from '@/base/bb-loading/index.vue';
 import MusicList from '@/components/music-list/index.vue';
 import { useLoad } from '@/hooks/useload';
 import { toHttps } from '@/utils/util';
-import type { ArtistsItem, SongDetailItem } from '@/types/dataTypes';
+import type {
+  HotItem,
+  SongDetailItem,
+  Track,
+  SearchResponse,
+} from '@/types/dataTypes';
 
 // ------------------------------ store & hooks ------------------------------
 const playerStore = usePlayerStore();
@@ -52,7 +57,7 @@ const musicListRef = useTemplateRef('musicListRef');
 
 // ------------------------------ 数据 ------------------------------
 const searchValue = ref<string>('');
-const Artists = ref<ArtistsItem[]>([]);
+const HotList = ref<HotItem[]>([]);
 const list = ref<SongDetailItem[]>([]);
 const page = ref<number>(0);
 const lockUp = ref(true);
@@ -77,7 +82,7 @@ watch(list, (newList, oldList) => {
 onMounted(() => {
   // 获取热搜
   searchHot().then(({ result }) => {
-    Artists.value = result.hots.slice(0, 5);
+    HotList.value = result.hots.slice(0, 5);
     bbLoadShow.value = false;
   });
 });
@@ -105,7 +110,7 @@ function onEnter() {
   }
 
   search(searchValue.value).then(({ result }) => {
-    list.value = formatSongs(result.songs);
+    list.value = formatSongs(result.songs as Track[]);
     _hideLoad();
   });
 }
@@ -114,12 +119,12 @@ function onEnter() {
 function pullUpLoad() {
   page.value += 1;
 
-  search(searchValue.value, page.value).then(({ result }) => {
+  search(searchValue.value, page.value).then(({ result }: SearchResponse) => {
     if (!result.songs) {
       proxy?.$bbToast && proxy?.$bbToast('没有更多歌曲啦！');
       return;
     }
-    list.value = [...list.value, ...formatSongs(result.songs)];
+    list.value = [...list.value, ...formatSongs(result.songs as Track[])];
   });
 }
 
@@ -136,7 +141,7 @@ async function selectItem(music: SongDetailItem) {
 
 // 获取歌曲详情
 function _getMusicDetail(id: string) {
-  return getMusicDetail(id).then((res) => res.songs[0].al.picUrl);
+  return getMusicDetail(id).then((res) => res.songs[0]!.al.picUrl);
 }
 </script>
 

@@ -9,7 +9,7 @@
     >
       <template #listBtn>
         <div class="list-btn">
-          <span @click="dialogRef.show()">清空列表</span>
+          <span @click="dialogRef!.show()">清空列表</span>
         </div>
       </template>
     </music-list>
@@ -23,10 +23,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { usePlayerStore } from '@/stores';
 import MusicList from '@/components/music-list/index.vue';
 import BbDialog from '@/base/bb-dialog/index.vue';
+import type { SongDetailItem } from '@/types/dataTypes';
+
+const { proxy } = getCurrentInstance()!;
 
 // ------------------------------ store ------------------------------
 const store = usePlayerStore();
@@ -36,8 +39,6 @@ const dialogRef = useTemplateRef('dialogRef');
 
 // ------------------------------ computed ------------------------------
 const historyList = computed(() => store.historyList);
-const playing = computed(() => store.playing);
-const currentMusic = computed(() => store.currentMusic);
 
 // ------------------------------ methods ------------------------------
 
@@ -45,13 +46,11 @@ const currentMusic = computed(() => store.currentMusic);
 function clearList() {
   store.clearHistory();
   // 全局 toast（与 Vue2 一致）
-  window.$bbToast
-    ? window.$bbToast('列表清空成功')
-    : console.log('列表清空成功');
+  proxy!.$bbToast('列表清空成功');
 }
 
 // 播放事件
-function selectItem(item, index) {
+function selectItem(_item: SongDetailItem, index: number) {
   store.selectPlay({
     list: historyList.value,
     index,
@@ -59,15 +58,10 @@ function selectItem(item, index) {
 }
 
 // 删除事件
-function deleteItem(index) {
+function deleteItem(index: number) {
   const list = [...historyList.value];
   list.splice(index, 1);
   store.removeHistory(list);
-  window.$bbToast ? window.$bbToast('删除成功') : console.log('删除成功');
-}
-
-// 设置播放状态
-function setPlaying(value) {
-  store.setPlaying(value);
+  proxy!.$bbToast('删除成功');
 }
 </script>

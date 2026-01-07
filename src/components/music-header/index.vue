@@ -139,12 +139,12 @@ const app_getUserPlaylist = (uid: string) => {
   getUserPlaylist(uid).then(({ playlist = [] }) => {
     uidValue.value = '';
 
-    if (!playlist.length || !playlist[0].creator) {
+    if (!playlist.length || !playlist[0]!.creator) {
       proxy!.$bbToast?.(`未查询到 UID 为 ${uid} 的用户信息`);
       return;
     }
 
-    const creator = playlist[0].creator;
+    const creator = playlist[0]!.creator;
     setUid(uid);
 
     creator.avatarUrl = toHttps(creator.avatarUrl);

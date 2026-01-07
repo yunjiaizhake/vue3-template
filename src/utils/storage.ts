@@ -36,7 +36,7 @@ export function getHistoryList(): SongDetailItem[] {
   return storage.get(HISTORYLIST_KEY);
 }
 
-// 更新播放历史
+// 更新播放历史，将当前播放的歌曲插入到列表最前面，如果插入后达到历史列表上限则删除最后一个
 export function setHistoryList(music: SongDetailItem) {
   let list = storage.get(HISTORYLIST_KEY);
   const index = list.findIndex((item: SongDetailItem) => {

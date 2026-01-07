@@ -35,7 +35,7 @@ onMounted(async () => {
   // 获取播放列表
   const playlist = await getPlaylistDetail(MMPLAYER_CONFIG.PLAYLIST_ID);
   const list = playlist.tracks.slice(0, 100);
-  playerStore.setPlaylist({ list });
+  playerStore.setPlaylist(list as SongDetailItem[]);
 
   // 设置title切换逻辑
   const OriginTitle = document.title;

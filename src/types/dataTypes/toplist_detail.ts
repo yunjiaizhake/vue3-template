@@ -1,5 +1,10 @@
 import { type Creator } from './user_playlist';
 
+// /toplist/detail 接口返回值类型
+export interface ToplistDetailResponse {
+  code: string;
+  list: ToplistItem[];
+}
 export interface ToplistItem {
   ToplistType: string;
   adType: number;
@@ -21,7 +26,7 @@ export interface ToplistItem {
   englishTitle: string | null;
   highQuality: boolean;
   iconImageUrl: string | null;
-  id: number;
+  id: string;
   name: string;
   newImported: boolean;
   opRecommend: boolean;
