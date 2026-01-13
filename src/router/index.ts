@@ -59,6 +59,14 @@ const routes = [
           title: '评论详情',
         },
       },
+      {
+        path: '/music/ai-chat', // AI 聊天
+        component: () => import('@/pages/aiChat/index.vue'),
+        meta: {
+          title: 'AI 助手',
+          keepAlive: true,
+        },
+      },
     ],
   },
 ];

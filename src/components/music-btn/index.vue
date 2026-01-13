@@ -17,6 +17,9 @@
     <router-link to="/music/historylist" custom v-slot="{ navigate, isActive }">
       <span :class="{ active: isActive }" @click="navigate">我听过的</span>
     </router-link>
+    <router-link to="/music/ai-chat" custom v-slot="{ navigate, isActive }">
+      <span :class="{ active: isActive }" @click="navigate">AI 助手</span>
+    </router-link>
   </div>
 </template>
 
