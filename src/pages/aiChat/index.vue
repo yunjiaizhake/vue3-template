@@ -76,6 +76,7 @@
     <!-- 输入区域 -->
     <div class="input-area">
       <input
+        ref="inputRef"
         v-model="inputText"
         type="text"
         class="chat-input"
@@ -96,8 +97,10 @@
 
 <script setup lang="ts">
 import ollama from 'ollama';
+import type { Message } from 'ollama';
 import { useAiChatStore } from '@/stores/aiChat';
 import { storeToRefs } from 'pinia';
+import { getTools, executeToolCall } from './mcp';
 
 // ------------------------------ Store ------------------------------
 const aiChatStore = useAiChatStore();
@@ -105,17 +108,37 @@ const { messages, streamingContent, isLoading, selectedModel } =
   storeToRefs(aiChatStore);
 
 // ------------------------------ 配置 ------------------------------
-// 可选模型列表
+// 可选模型列表（支持 Tool Calling 的模型）
 const MODEL_OPTIONS = [
   { value: 'qwen2.5:0.5b', label: '⚡ 极速' },
   { value: 'qwen3:4b', label: '🚀 快速' },
   { value: 'mistral:7b', label: '⚖️ 均衡' },
-  { value: 'qwen3:8b', label: '🧠 推理-均衡' },
-  { value: 'deepseek-r1:latest', label: '🧠 推理-强' },
+  { value: 'deepseek-r1:latest', label: '🧠 推理-均衡' },
+  { value: 'qwen3:8b', label: '🧠 推理-强' },
 ];
+
+// 获取所有 MCP 工具定义
+const tools = getTools();
+
+// System Prompt - 工具检测时使用（指导模型调用工具）
+const TOOL_SYSTEM_PROMPT = `你是一个音乐小助手。你有以下工具可以使用：
+1. add - 用于数学加法计算，当用户需要计算两个数相加时，必须使用此工具
+2. searchSongsByMood - 根据情绪/心情推荐歌曲（如：开心、悲伤、放松）
+3. searchSongsByName - 根据歌手名称搜索该歌手的歌曲
+4. searchSongsByTitle - 根据歌曲名搜索歌曲的详细信息
+5. searchSongsByLyrics - 根据歌词片段查找歌曲
+
+重要规则：
+- 当用户要求进行数学计算时，必须调用 add 工具
+- 当用户想根据心情/情绪找歌曲时，调用 searchSongsByMood 工具
+- 当用户想搜索某个歌手的歌曲时，调用 searchSongsByName 工具
+- 当用户想查找某首歌曲的信息时，调用 searchSongsByTitle 工具
+- 当用户提供一段歌词想找歌曲时，调用 searchSongsByLyrics 工具
+- 工具返回的结果是准确的，请直接使用工具返回的结果回复用户`;
 
 // ------------------------------ 数据 ------------------------------
 const inputText = ref('');
+const inputRef = useTemplateRef<HTMLInputElement>('inputRef');
 const messageListRef = useTemplateRef<HTMLDivElement>('messageListRef');
 let abortController: AbortController | null = null; // 用于终止请求
 
@@ -130,7 +153,7 @@ function scrollToBottom() {
   });
 }
 
-// 发送消息
+// 发送消息（支持 Tool Calling）
 async function sendMessage() {
   const text = inputText.value.trim();
   if (!text || isLoading.value) return;
@@ -140,7 +163,7 @@ async function sendMessage() {
   inputText.value = '';
   scrollToBottom();
 
-  // 开始流式请求
+  // 开始请求
   aiChatStore.setLoading(true);
   aiChatStore.setStreamingContent('');
 
@@ -149,26 +172,85 @@ async function sendMessage() {
   const currentAbortController = abortController; // 保存当前引用
 
   try {
-    // 获取对话历史
-    const chatHistory = aiChatStore.getChatHistory();
+    // 当前用户消息（不带历史，确保工具能被正确触发）
+    const currentUserMessage: Message = { role: 'user', content: text };
 
-    // 使用流式 API
-    // 只保留最近 10 条对话历史，减少上下文长度以加快响应
-    const recentHistory = chatHistory.slice(-10);
+    // 工具检测消息：只带 system + 当前消息
+    const messagesForToolCheck: Message[] = [
+      { role: 'system', content: TOOL_SYSTEM_PROMPT },
+      currentUserMessage,
+    ];
 
+    // 第一次调用：检测是否需要工具
     const response = await ollama.chat({
       model: selectedModel.value,
-      messages: recentHistory,
-      stream: true,
+      messages: messagesForToolCheck,
+      tools: tools,
+      stream: false,
     });
 
-    // 处理流式响应
-    for await (const part of response) {
-      // 检查是否被终止（使用保存的引用，避免被置空后检查失效）
-      if (currentAbortController.signal.aborted) {
-        break;
+    // 检查是否有工具调用
+    if (response.message.tool_calls && response.message.tool_calls.length > 0) {
+      console.log('🔧 检测到工具调用:', response.message.tool_calls);
+
+      // 显示工具调用状态
+      aiChatStore.setStreamingContent('正在调用工具...');
+
+      // 构建工具调用消息（只含当前轮次）
+      const messagesWithTools: Message[] = [
+        { role: 'system', content: TOOL_SYSTEM_PROMPT },
+        currentUserMessage,
+        response.message, // AI 的工具调用消息
+      ];
+
+      // 执行所有工具调用
+      for (const toolCall of response.message.tool_calls) {
+        if (currentAbortController.signal.aborted) break;
+
+        const toolResult = await executeToolCall(toolCall);
+
+        // 添加工具结果
+        messagesWithTools.push({
+          role: 'tool',
+          content: toolResult,
+        });
       }
-      aiChatStore.appendStreamingContent(part.message.content);
+
+      // 如果没有被终止，让模型生成最终回复
+      if (!currentAbortController.signal.aborted) {
+        aiChatStore.setStreamingContent('正在生成回复...');
+
+        // 第二次调用：根据工具结果生成回复（流式）
+        const finalResponse = await ollama.chat({
+          model: selectedModel.value,
+          messages: messagesWithTools,
+          stream: true,
+        });
+
+        aiChatStore.setStreamingContent('');
+
+        for await (const part of finalResponse) {
+          if (currentAbortController.signal.aborted) break;
+          aiChatStore.appendStreamingContent(part.message.content);
+        }
+      }
+    } else {
+      // 没有工具调用，普通对话（可以带历史增强上下文）
+      aiChatStore.setStreamingContent('');
+
+      const chatHistory = aiChatStore.getChatHistory().slice(-10);
+      const messagesForChat: Message[] = [...chatHistory];
+
+      const streamResponse = await ollama.chat({
+        model: selectedModel.value,
+        messages: messagesForChat,
+        stream: true,
+      });
+
+      for await (const part of streamResponse) {
+        if (currentAbortController.signal.aborted) break;
+        aiChatStore.appendStreamingContent(part.message.content);
+      }
     }
 
     // 检查是否是因为终止而退出
@@ -202,6 +284,7 @@ async function sendMessage() {
     aiChatStore.setLoading(false);
     aiChatStore.setStreamingContent('');
     scrollToBottom();
+    nextTick(() => inputRef.value?.focus());
   }
 }
 
@@ -215,6 +298,7 @@ function handleStopGeneration() {
       aiChatStore.addAssistantMessage(streamingContent.value + '\n\n[已终止]');
       aiChatStore.setStreamingContent('');
     }
+    nextTick(() => inputRef.value?.focus());
     abortController = null;
   }
 }

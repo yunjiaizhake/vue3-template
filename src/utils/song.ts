@@ -16,7 +16,7 @@ function filterSinger(singers: SongType['ar']) {
 }
 
 export class Song {
-  id!: number;
+  id!: string;
   name!: string;
   singer!: string;
   album!: string;
@@ -28,7 +28,7 @@ export class Song {
   }
 }
 
-export function createSong(music: SongType) {
+export function createSong(music: SongType): SongObjectType {
   const album = music.album || music.al || {};
   const duration = music.duration || music.dt;
   return new Song({
