@@ -126,6 +126,7 @@ import MusicBtn from '@/components/music-btn/index.vue';
 import Lyric from '@/components/lyric/index.vue';
 import Volume from '@/components/volume/index.vue';
 import type { SongDetailItem, LyricLine } from '@/types/dataTypes';
+import { useAiEventBusStore } from '@/stores/aiEventBus';
 
 // ------------------------------ 数据 ------------------------------
 const volume = ref<number>(getVolume());
@@ -145,6 +146,7 @@ const lyricRef = useTemplateRef('lyricRef');
 const route = useRoute();
 const router = useRouter();
 const store = usePlayerStore();
+const aiBus = useAiEventBusStore();
 
 const audioEle = computed(() => store.audioEle);
 const mode = computed(() => store.mode);
@@ -222,6 +224,21 @@ watch(audioEle, (newEle) => {
   }
 });
 
+watch(
+  () => aiBus.lastEvent,
+  (event) => {
+    console.log('1111111111111111111111', event);
+    if (!event) return;
+    if (event.payload === 'prev') {
+      prev();
+    } else if (event.payload === 'next') {
+      next();
+    } else if (event.payload === 'play') {
+      play();
+    }
+  },
+);
+
 // ------------------------------ 方法 ------------------------------
 function initPlayer() {
   bbPlayerMusic.initAudio({
@@ -235,8 +252,10 @@ function initPlayer() {
     historyList,
     setPlaying: store.setPlaying,
     next,
+    prev,
     loop,
     setHistory: store.setHistory,
+    getLastSwitchAction: () => store.lastSwitchAction,
     toast: proxy?.$bbToast, // 传入全局toast
   });
 }
@@ -279,9 +298,15 @@ function initKeyDown() {
   };
 }
 
-function prev() {
-  if (!musicReady.value) return;
+function prev(flag = false) {
+  if (!isMusicPlay()) return;
+  store.setLastSwitchAction('prev');
   if (playlist.value.length === 1) {
+    if (flag) {
+      store.setCurrentIndex(-1);
+      store.setPlaying(false);
+      return;
+    }
     loop();
   } else {
     let index = currentIndex.value - 1;
@@ -293,12 +318,14 @@ function prev() {
 }
 
 function play() {
-  if (!musicReady.value) return;
+  if (!isMusicPlay()) return;
   store.setPlaying(!playing.value);
 }
 
 function next(flag = false) {
-  if (!musicReady.value) return;
+  if (!isMusicPlay()) return;
+  store.setLastSwitchAction('next');
+
   const length = playlist.value.length;
   if (
     (length - 1 === currentIndex.value && mode.value === PLAY_MODE.ORDER) ||
@@ -358,11 +385,16 @@ function resetCurrentIndex(list: SongDetailItem[]) {
 }
 
 function openComment() {
+  if (!isMusicPlay()) return;
+  router.push(`/music/comment/${currentMusic.value.id}`);
+}
+
+function isMusicPlay() {
   if (!currentMusic.value.id) {
-    proxy!.$bbToast?.('还没有播放歌曲哦！');
+    proxy!.$bbToast?.('还没有播放歌曲哦,请先选择一首你喜欢的音乐吧！');
     return false;
   }
-  router.push(`/music/comment/${currentMusic.value.id}`);
+  return true;
 }
 
 function volumeChange(percent: number) {
@@ -453,7 +485,7 @@ function _getLyric(id: string) {
     }
   }
 
-  /*底部mmPlayer-bar*/
+  /*底部bbPlayer-bar*/
   .music-bar {
     display: flex;
     align-items: center;
@@ -461,7 +493,7 @@ function _getLyric(id: string) {
     padding: 15px 0;
     color: #fff;
     &.disable {
-      pointer-events: none;
+      // pointer-events: none;
       opacity: 0.6;
     }
     .icon-color {

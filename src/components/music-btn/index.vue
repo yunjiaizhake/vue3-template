@@ -17,13 +17,46 @@
     <router-link to="/music/historylist" custom v-slot="{ navigate, isActive }">
       <span :class="{ active: isActive }" @click="navigate">我听过的</span>
     </router-link>
-    <router-link to="/music/ai-chat" custom v-slot="{ navigate, isActive }">
-      <span :class="{ active: isActive }" @click="navigate">AI 助手</span>
+    <router-link
+      v-if="isOnline"
+      to="/music/ai-chat-online"
+      custom
+      v-slot="{ navigate, isActive }"
+    >
+      <span :class="{ active: isActive }" @click="navigate">AI(在线)</span>
+    </router-link>
+    <router-link
+      v-else
+      to="/music/ai-chat"
+      custom
+      v-slot="{ navigate, isActive }"
+    >
+      <span :class="{ active: isActive }" @click="navigate">AI(本地)</span>
     </router-link>
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const isOnline = ref(navigator.onLine);
+
+function handleOnline() {
+  isOnline.value = true;
+}
+
+function handleOffline() {
+  isOnline.value = false;
+}
+
+onMounted(() => {
+  window.addEventListener('online', handleOnline);
+  window.addEventListener('offline', handleOffline);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('online', handleOnline);
+  window.removeEventListener('offline', handleOffline);
+});
+</script>
 
 <style lang="less" scoped>
 .music-btn {

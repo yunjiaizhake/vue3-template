@@ -98,7 +98,7 @@
 <script setup lang="ts">
 import ollama from 'ollama';
 import type { Message } from 'ollama';
-import { useAiChatStore } from '@/stores/aiChat';
+import { useAiChatStore } from '@/stores/aiChatLocal';
 import { storeToRefs } from 'pinia';
 import { getTools, executeToolCall } from './mcp';
 

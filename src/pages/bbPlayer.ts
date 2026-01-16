@@ -11,8 +11,10 @@ interface BbPlayerMusicContext {
   historyList: ComputedRef<SongDetailItem[]>;
   setPlaying: (playing: boolean) => void;
   next: (flag?: boolean) => void;
+  prev: (flag?: boolean) => void;
   loop: () => void;
   setHistory: (music: SongDetailItem) => void;
+  getLastSwitchAction: () => 'prev' | 'next' | null;
   toast?: (message: string, position?: 'top' | 'center' | 'bottom') => void;
 }
 // 重试次数
@@ -31,8 +33,10 @@ const bbPlayerMusic = {
       historyList,
       setPlaying,
       next,
+      prev,
       loop,
       setHistory,
+      getLastSwitchAction,
       toast, // 传入全局toast函数
     } = ctx;
 
@@ -76,10 +80,19 @@ const bbPlayerMusic = {
     // 音乐播放出错
     ele.onerror = () => {
       if (retry === 0) {
-        let toastText = '当前音乐不可播放，已自动播放下一曲';
-        if (playlist.value.length === 1) toastText = '没有可播放的音乐哦~';
-        toast?.(toastText);
-        next(true);
+        const lastAction = getLastSwitchAction();
+        if (playlist.value.length === 1) {
+          toast?.('没有可播放的音乐哦~');
+          next(true);
+          return;
+        }
+        if (lastAction === 'prev') {
+          toast?.('当前音乐不可播放，已自动播放上一首');
+          prev(true);
+        } else {
+          toast?.('当前音乐不可播放，已自动播放下一曲');
+          next(true);
+        }
       } else {
         console.log('重试一次');
         retry -= 1;

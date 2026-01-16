@@ -123,7 +123,6 @@ function initData() {
   getComment(route.params.id as string, page.value).then((res) => {
     hotComments.value = res.hotComments;
     commentList.value = res.comments;
-    console.log('hotComments.value', hotComments.value);
     total.value = res.total;
     lockUp.value = true;
     _hideLoad();

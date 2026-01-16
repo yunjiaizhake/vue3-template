@@ -1,4 +1,4 @@
-import { get } from '@/utils/axios';
+import { get, post } from '@/utils/axios';
 import { DEFAULT_LIMIT } from '@/config';
 import { formatSongs } from '@/utils/song';
 import type {
@@ -127,5 +127,12 @@ export function getComment(
       limit: limit,
       id,
     },
+  });
+}
+
+// 进行和大模型的对话
+export function getAiChat(prompt: string) {
+  return post('/gpt/chat/stream', {
+    prompt,
   });
 }

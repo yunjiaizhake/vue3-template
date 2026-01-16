@@ -149,7 +149,6 @@ const app_getUserPlaylist = (uid: string) => {
 
     creator.avatarUrl = toHttps(creator.avatarUrl);
     user.value = creator;
-    console.log('user.value', user.value);
 
     setTimeout(() => {
       proxy!.$bbToast?.(`${user.value.nickname} 欢迎使用 BbPlayer`);

@@ -60,10 +60,18 @@ const routes = [
         },
       },
       {
-        path: '/music/ai-chat', // AI 聊天
-        component: () => import('@/pages/aiChat/index.vue'),
+        path: '/music/ai-chat', // AI 聊天 (本地)
+        component: () => import('@/pages/aiChatLocal/index.vue'),
         meta: {
-          title: 'AI 助手',
+          title: 'AI 助手(本地)',
+          keepAlive: true,
+        },
+      },
+      {
+        path: '/music/ai-chat-online', // AI 聊天 (在线)
+        component: () => import('@/pages/aiChatOnline/index.vue'),
+        meta: {
+          title: 'AI 助手(在线)',
           keepAlive: true,
         },
       },

@@ -9,6 +9,7 @@ import VueLazyload from 'vue3-lazyload';
 import '@/styles/index.less';
 import bbToast from '@/base/bb-toast';
 import Icon from '@/base/bb-icon/index.vue';
+import { initAiChatWs } from '@/pages/aiChatOnline/wsSignal';
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
@@ -25,4 +26,6 @@ app.use(VueLazyload, {
   loading: '@/assets/img/default.png',
 });
 
-app.use(pinia).use(router).mount('#app');
+app.use(pinia);
+initAiChatWs();
+app.use(router).mount('#app');

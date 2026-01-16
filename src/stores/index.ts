@@ -25,6 +25,7 @@ export const usePlayerStore = defineStore('player', {
     currentIndex: -1, // 当前音乐索引
     historyList: getHistoryList() || [], // 播放历史列表
     uid: getUserId() || null, // 网易云用户UID
+    lastSwitchAction: null as 'prev' | 'next' | null, // 最近切歌方向
   }),
 
   getters: {
@@ -74,6 +75,11 @@ export const usePlayerStore = defineStore('player', {
     // 修改网易云用户UID
     setUid(uid: string | null) {
       this.uid = setUserId(uid);
+    },
+
+    // 记录切歌方向
+    setLastSwitchAction(action: 'prev' | 'next' | null) {
+      this.lastSwitchAction = action;
     },
 
     // 选择播放（会更新整个播放列表）
