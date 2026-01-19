@@ -10,7 +10,11 @@ import type { PlaylistItem, Creator, PlaylistResponse } from './user_playlist';
 import type { LyricLine, LyricResponse } from './lyric';
 import type { CommentMetaResponse, CommentItem } from './comment';
 import type { PlaylistDetailResponse, Track } from './playlist_detail';
-import type { SongDetailResponse, SongObjectType } from './song_detail';
+import type {
+  SongDetailResponse,
+  SongObjectType,
+  vipSong,
+} from './song_detail';
 
 export type {
   ToplistItem,
@@ -32,4 +36,5 @@ export type {
   SearchResponse,
   HotItem,
   PlaylistResponse,
+  vipSong,
 };

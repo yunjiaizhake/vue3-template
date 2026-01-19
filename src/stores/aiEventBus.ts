@@ -1,15 +1,16 @@
-export type AiEventPayload = {
+export type MusicControl = {
   payload?: string;
 };
 
-export interface AiEvent {
+export interface PlaySong {
   payload?: string;
+  index?: number;
 }
 
 export const useAiEventBusStore = defineStore('aiEventBus', {
   state: () => ({
-    music_control: null as AiEvent | null,
-    play_song: null as AiEvent | null,
+    music_control: null as MusicControl | null,
+    play_song: null as PlaySong | null,
   }),
   actions: {
     emit_music_control(payload?: string) {
@@ -17,9 +18,10 @@ export const useAiEventBusStore = defineStore('aiEventBus', {
         payload,
       };
     },
-    emit_play_song(payload?: string) {
+    emit_play_song(payload: string, index: number) {
       this.play_song = {
         payload,
+        index,
       };
     },
   },

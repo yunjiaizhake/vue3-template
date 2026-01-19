@@ -35,3 +35,12 @@ export interface SongObjectType {
   duration: number;
   url: string;
 }
+
+interface VipSongItem {
+  id: string;
+  url: string;
+}
+
+export interface VipSong {
+  data: VipSongItem[];
+}

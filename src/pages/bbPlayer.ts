@@ -1,5 +1,7 @@
 import { PLAY_MODE } from '@/config';
-import type { SongDetailItem } from '@/types/dataTypes';
+import { sendPlayerStatus } from '@/pages/aiChatOnline/wsSignal';
+import type { SongDetailItem, vipSong } from '@/types/dataTypes';
+import { getMusicUrl } from '@/api/index';
 interface BbPlayerMusicContext {
   audioEle: ComputedRef<HTMLAudioElement | null>;
   currentMusic: ComputedRef<SongDetailItem>;
@@ -79,6 +81,7 @@ const bbPlayerMusic = {
 
     // 音乐播放出错
     ele.onerror = () => {
+      toast?.('当前音乐是会员歌曲，正在试听前30秒~');
       if (retry === 0) {
         const lastAction = getLastSwitchAction();
         if (playlist.value.length === 1) {
@@ -96,8 +99,12 @@ const bbPlayerMusic = {
       } else {
         console.log('重试一次');
         retry -= 1;
-        ele.src = currentMusic.value.url;
-        ele.load();
+        getMusicUrl(currentMusic.value.id).then((res: vipSong) => {
+          ele.src = res.data[0].url.split('?')[0];
+          ele.load();
+          ele.play();
+          setPlaying(true);
+        });
       }
     };
 
@@ -111,6 +118,7 @@ const bbPlayerMusic = {
     // 将能播放的音乐加入播放历史
     ele.oncanplay = () => {
       retry = 1;
+      sendPlayerStatus('player_status', true);
       if (
         historyList.value.length === 0 ||
         currentMusic.value.id !== historyList.value[0]?.id

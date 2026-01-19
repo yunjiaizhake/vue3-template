@@ -95,7 +95,6 @@ export const usePlayerStore = defineStore('player', {
       let list = [...this.playlist];
       // 查询当前播放列表是否有代插入的音乐，并返回其索引值
       let index = findIndex(list, music);
-      console.log('indexindexindexindex', index);
       // 当前播放列表有待插入的音乐时，直接改变当前播放音乐的索引值
       if (index > -1) {
         this.currentIndex = index;

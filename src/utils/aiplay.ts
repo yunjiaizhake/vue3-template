@@ -48,6 +48,7 @@ export async function playSong(song: SongDetailItem): Promise<void> {
  */
 export async function searchAndPlay(
   keyword: string,
+  index: number = 0,
 ): Promise<SongDetailItem | null> {
   const songs = await searchSongs(keyword);
   if (songs.length === 0) {
@@ -55,7 +56,7 @@ export async function searchAndPlay(
     return null;
   }
 
-  const firstSong = songs[0]!;
+  const firstSong = songs[index]!;
   console.log('firstSong', firstSong);
   await playSong(firstSong);
   return firstSong;

@@ -38,7 +38,7 @@ export function initAiChatWs() {
       aiBus.emit_music_control(data.payload);
     }
     if (data.type === 'play_song') {
-      aiBus.emit_play_song(data.payload);
+      aiBus.emit_play_song(data.payload.songName, data.payload.index);
     }
   });
 
@@ -51,6 +51,21 @@ export function initAiChatWs() {
   });
 
   return ws;
+}
+
+export function sendAiChatWsMessage(data: unknown) {
+  if (!ws || ws.readyState === WebSocket.CLOSED) {
+    initAiChatWs();
+  }
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify(data));
+}
+
+export function sendPlayerStatus(type: string, hasSong: boolean) {
+  sendAiChatWsMessage({
+    type,
+    payload: { hasSong },
+  });
 }
 
 export function closeAiChatWs() {
