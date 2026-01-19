@@ -30,7 +30,7 @@ import type { SongDetailItem } from '@/types/dataTypes';
 
 const { proxy } = getCurrentInstance()!;
 // ------------------------------ refs ------------------------------
-const dialogRef = useTemplateRef<InstanceType<typeof BbDialog>>('loginDialog');
+const dialogRef = useTemplateRef<InstanceType<typeof BbDialog>>('dialogRef');
 
 // ------------------------------ store ------------------------------
 const store = usePlayerStore();

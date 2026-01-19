@@ -45,6 +45,13 @@ const routes = [
         },
       },
       {
+        path: '/music/favoritelist', // 收藏列表
+        component: () => import('@/pages/favoriteList/index.vue'),
+        meta: {
+          title: '我收藏的',
+        },
+      },
+      {
         path: '/music/search', // 搜索
         component: () => import('@/pages/search/index.vue'),
         meta: {

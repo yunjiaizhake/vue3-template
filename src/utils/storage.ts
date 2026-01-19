@@ -29,7 +29,7 @@ const storage = {
  * @type    HISTORYLIST_KEY：key值
  *          HistoryListMAX：最大长度
  */
-const HISTORYLIST_KEY = '__mmPlayer_historyList__';
+const HISTORYLIST_KEY = '__bbPlayer_historyList__';
 const HistoryListMAX = 200;
 // 获取播放历史
 export function getHistoryList(): SongDetailItem[] {
@@ -73,7 +73,7 @@ export function clearHistoryList() {
  * @type    MODE_KEY：key值
  *          HistoryListMAX：最大长度
  */
-const MODE_KEY = '__mmPlayer_mode__';
+const MODE_KEY = '__bbPlayer_mode__';
 // 获取播放模式
 export function getMode() {
   return Number(storage.get(MODE_KEY, MMPLAYER_CONFIG.PLAY_MODE));
@@ -88,7 +88,7 @@ export function setMode(mode: number) {
  * 网易云用户uid
  * @type USERID_KEY：key值
  */
-const USERID_KEY = '__mmPlayer_userID__';
+const USERID_KEY = '__bbPlayer_userID__';
 // 获取用户uid
 export function getUserId() {
   return String(storage.get(USERID_KEY, null));
@@ -103,7 +103,7 @@ export function setUserId(uid: string | null) {
  * 音量
  * @type VOLUME_KEY：key值
  */
-const VOLUME_KEY = '__mmPlayer_volume__';
+const VOLUME_KEY = '__bbPlayer_volume__';
 // 获取音量
 export function getVolume() {
   const volume = storage.get(VOLUME_KEY, MMPLAYER_CONFIG.VOLUME);
@@ -114,3 +114,46 @@ export function setVolume(volume: number) {
   storage.set(VOLUME_KEY, volume);
   return volume;
 }
+
+/**
+ * 收藏列表-----------------------------------------------------------------------------------------------------
+ * @type    FAVORITELIST_KEY：key值
+ *          FavoriteListMAX：最大长度
+ */
+const FAVORITELIST_KEY = '__bbPlayer_favoriteList__';
+const FavoriteListMAX = 200;
+// 获取收藏列表
+export function getFavoriteList(): SongDetailItem[] {
+  return storage.get(FAVORITELIST_KEY);
+}
+
+// 添加收藏
+export function addFavorite(music: SongDetailItem) {
+  let list = storage.get(FAVORITELIST_KEY);
+  const index = list.findIndex((item: SongDetailItem) => {
+    return item.id === music.id;
+  });
+  if (index > -1) {
+    return list;
+  }
+  list.unshift(music);
+  if (FavoriteListMAX && list.length > FavoriteListMAX) {
+    list.pop();
+  }
+  storage.set(FAVORITELIST_KEY, JSON.stringify(list));
+  return list;
+}
+
+// 删除一条收藏（传入新列表）
+export function removeFavoriteList(list: SongDetailItem[]): SongDetailItem[] {
+  storage.set(FAVORITELIST_KEY, JSON.stringify(list));
+  return list;
+}
+
+// 清空收藏列表
+export function clearFavoriteList() {
+  storage.clear(FAVORITELIST_KEY);
+  return [];
+}
+
+// 收藏列表end----------------------------------------------------------------------------------

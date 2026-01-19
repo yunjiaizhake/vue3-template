@@ -6,6 +6,10 @@ import {
   clearHistoryList,
   setHistoryList,
   removeHistoryList,
+  getFavoriteList,
+  addFavorite,
+  removeFavoriteList,
+  clearFavoriteList,
   setMode,
   setUserId,
 } from '@/utils/storage';
@@ -24,6 +28,7 @@ export const usePlayerStore = defineStore('player', {
     orderList: [] as SongDetailItem[], // 顺序列表
     currentIndex: -1, // 当前音乐索引
     historyList: getHistoryList() || [], // 播放历史列表
+    favoriteList: getFavoriteList() || [], // 收藏列表
     uid: getUserId() || null, // 网易云用户UID
     lastSwitchAction: null as 'prev' | 'next' | null, // 最近切歌方向
   }),
@@ -70,6 +75,11 @@ export const usePlayerStore = defineStore('player', {
     // 修改播放历史列表
     setHistoryList(historyList: SongDetailItem[]) {
       this.historyList = historyList;
+    },
+
+    // 修改收藏列表
+    setFavoriteList(favoriteList: SongDetailItem[]) {
+      this.favoriteList = favoriteList;
     },
 
     // 修改网易云用户UID
@@ -150,6 +160,28 @@ export const usePlayerStore = defineStore('player', {
     // 清空播放历史
     clearHistory() {
       this.historyList = clearHistoryList();
+    },
+
+    // 切换收藏状态
+    toggleFavorite(music: SongDetailItem) {
+      const list = [...this.favoriteList];
+      const index = findIndex(list, music);
+      if (index > -1) {
+        list.splice(index, 1);
+        this.favoriteList = removeFavoriteList(list);
+      } else {
+        this.favoriteList = addFavorite(music);
+      }
+    },
+
+    // 删除收藏
+    removeFavorite(list: SongDetailItem[]) {
+      this.favoriteList = removeFavoriteList(list);
+    },
+
+    // 清空收藏
+    clearFavorite() {
+      this.favoriteList = clearFavoriteList();
     },
   },
 });

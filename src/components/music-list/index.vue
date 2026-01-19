@@ -23,6 +23,12 @@
 
             <div class="list-menu">
               <bb-icon
+                class="hover list-menu-icon-fav"
+                :type="isFavorite(item.id) ? 'aixin1' : 'aixin'"
+                :size="40"
+                @click.stop.prevent="toggleFavorite(item)"
+              />
+              <bb-icon
                 class="hover"
                 :type="getPlayIconType(item)"
                 :size="40"
@@ -81,6 +87,7 @@ const emit = defineEmits(['select', 'del', 'pullUp']);
 const store = usePlayerStore();
 const playing = computed(() => store.playing);
 const currentMusic = computed(() => store.currentMusic);
+const favoriteList = computed(() => store.favoriteList);
 
 // ------------------------------ state ------------------------------
 const listContent = useTemplateRef<HTMLDivElement>('listContent');
@@ -145,6 +152,14 @@ function getPlayIconType({ id }: SongObjectType) {
   return playing.value && currentMusic.value.id === id
     ? 'pause-mini'
     : 'play-mini';
+}
+
+function isFavorite(id: string) {
+  return favoriteList.value.some((item) => item.id === id);
+}
+
+function toggleFavorite(item: SongObjectType) {
+  store.toggleFavorite(item);
 }
 
 function deleteItem(index: number) {
@@ -276,6 +291,10 @@ defineExpose({
     }
   }
 
+  .list-menu-icon-fav {
+    margin-right: 12px;
+  }
+
   .list-artist,
   .list-album {
     display: block;
@@ -300,21 +319,6 @@ defineExpose({
       top: 50%;
       left: 0;
       transform: translateY(-50%);
-    }
-  }
-}
-
-.list-btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50px;
-  span {
-    padding: 5px 20px;
-    cursor: pointer;
-    user-select: none;
-    &:hover {
-      color: @text_color_active;
     }
   }
 }

@@ -18,12 +18,19 @@
       <span :class="{ active: isActive }" @click="navigate">我听过的</span>
     </router-link>
     <router-link
+      to="/music/favoritelist"
+      custom
+      v-slot="{ navigate, isActive }"
+    >
+      <span :class="{ active: isActive }" @click="navigate">我收藏的</span>
+    </router-link>
+    <router-link
       v-if="isOnline"
       to="/music/ai-chat-online"
       custom
       v-slot="{ navigate, isActive }"
     >
-      <span :class="{ active: isActive }" @click="navigate">AI(在线)</span>
+      <span :class="{ active: isActive }" @click="navigate">音乐小助手</span>
     </router-link>
     <router-link
       v-else
