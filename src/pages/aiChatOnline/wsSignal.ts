@@ -31,10 +31,15 @@ export function initAiChatWs() {
     try {
       data = JSON.parse(event.data);
     } catch {
-      // keep raw text
+      console.log('[WS] 收到信号:', event);
     }
     console.log('[WS] 收到信号:', data);
-    aiBus.emit(data);
+    if (data.type === 'music_control') {
+      aiBus.emit_music_control(data.payload);
+    }
+    if (data.type === 'play_song') {
+      aiBus.emit_play_song(data.payload);
+    }
   });
 
   ws.addEventListener('close', () => {

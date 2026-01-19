@@ -120,6 +120,7 @@ import {
 } from '@/utils/util';
 import { PLAY_MODE, MMPLAYER_CONFIG } from '@/config';
 import { getVolume, setVolume } from '@/utils/storage';
+import { searchAndPlay } from '@/utils/aiplay';
 
 import BbProgress from '@/base/bb-progress/index.vue';
 import MusicBtn from '@/components/music-btn/index.vue';
@@ -225,9 +226,8 @@ watch(audioEle, (newEle) => {
 });
 
 watch(
-  () => aiBus.lastEvent,
+  () => aiBus.music_control,
   (event) => {
-    console.log('1111111111111111111111', event);
     if (!event) return;
     if (event.payload === 'prev') {
       prev();
@@ -236,6 +236,13 @@ watch(
     } else if (event.payload === 'play') {
       play();
     }
+  },
+);
+watch(
+  () => aiBus.play_song,
+  (event) => {
+    if (!event) return;
+    searchAndPlay(event.payload as string);
   },
 );
 

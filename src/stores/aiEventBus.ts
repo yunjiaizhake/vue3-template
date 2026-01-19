@@ -8,16 +8,19 @@ export interface AiEvent {
 
 export const useAiEventBusStore = defineStore('aiEventBus', {
   state: () => ({
-    lastEvent: null as AiEvent | null,
+    music_control: null as AiEvent | null,
+    play_song: null as AiEvent | null,
   }),
   actions: {
-    emit(payload?: string) {
-      this.lastEvent = {
+    emit_music_control(payload?: string) {
+      this.music_control = {
         payload,
       };
     },
-    clear() {
-      this.lastEvent = null;
+    emit_play_song(payload?: string) {
+      this.play_song = {
+        payload,
+      };
     },
   },
 });
