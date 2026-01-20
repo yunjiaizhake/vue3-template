@@ -64,6 +64,7 @@ const routes = [
         component: () => import('@/pages/comment/index.vue'),
         meta: {
           title: '评论详情',
+          keepAlive: true,
         },
       },
       {

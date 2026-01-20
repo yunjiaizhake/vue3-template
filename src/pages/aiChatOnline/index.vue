@@ -224,14 +224,6 @@ onMounted(() => {
 onActivated(() => {
   scrollToBottom();
 });
-
-// 组件卸载时终止请求
-onUnmounted(() => {
-  if (abortController) {
-    abortController.abort();
-    abortController = null;
-  }
-});
 </script>
 
 <style lang="less" scoped>

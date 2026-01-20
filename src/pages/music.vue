@@ -4,21 +4,21 @@
       <div class="music-left flex-col">
         <music-btn @onClickLyric="handleOpenLyric" />
         <router-view v-slot="{ Component }">
-          <keep-alive v-if="route.meta.keepAlive">
-            <component :is="Component" class="router-view" />
+          <keep-alive>
+            <component
+              v-if="route.meta.keepAlive"
+              :is="Component"
+              :key="route.name"
+              class="router-view"
+            />
           </keep-alive>
           <component
-            v-else
+            v-if="!route.meta.keepAlive"
             :is="Component"
             :key="$route.fullPath"
             class="router-view"
           />
         </router-view>
-        <!-- <router-view
-          v-if="!$route.meta.keepAlive"
-          :key="$route.path"
-          class="router-view"
-        /> -->
       </div>
       <div class="music-right" :class="{ show: lyricVisible }">
         <div class="close-lyric" @click="handleCloseLyric">关闭歌词</div>
