@@ -40,7 +40,7 @@
         <bb-icon
           class="pointer"
           type="prev"
-          :size="36"
+          :size="30"
           title="上一曲 Ctrl + Left"
           @click="prev"
         />
@@ -49,12 +49,16 @@
           title="播放暂停 Ctrl + Space"
           @click="play"
         >
-          <bb-icon :type="playing ? 'pause' : 'play'" :size="24" />
+          <bb-icon
+            :type="playing ? 'pause' : 'play'"
+            :size="24"
+            :class="{ 'play-shift': !playing }"
+          />
         </div>
         <bb-icon
           class="pointer"
           type="next"
-          :size="36"
+          :size="30"
           title="下一曲 Ctrl + Right"
           @click="next"
         />
@@ -92,7 +96,7 @@
       <bb-icon
         class="icon-color pointer comment"
         type="comment"
-        :size="30"
+        :size="28"
         @click="openComment"
       />
 
@@ -497,7 +501,7 @@ function _getLyric(id: string) {
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 15px 0;
+    padding-top: 15px;
     color: #fff;
     &.disable {
       // pointer-events: none;
@@ -516,8 +520,12 @@ function _getLyric(id: string) {
         border-radius: 50%;
         width: 40px;
         height: 40px;
-        color: #fff;
+        // color: #fff;
+        color: rgba(255, 255, 255, 0.7);
         background-color: rgba(255, 255, 255, 0.3);
+        .play-shift {
+          transform: translateX(2px);
+        }
       }
     }
 
@@ -526,23 +534,16 @@ function _getLyric(id: string) {
       width: 19px;
       min-width: 19px;
       height: 20px;
-      background-position: 0 -30px;
     }
     .btn-play {
       width: 21px;
       min-width: 21px;
       height: 29px;
-      margin: 0 50px;
-      background-position: 0 0;
-      &.btn-play-pause {
-        background-position: -30px 0;
-      }
     }
     .btn-next {
       width: 19px;
       min-width: 19px;
       height: 20px;
-      background-position: 0 -52px;
     }
     .music-music {
       position: relative;

@@ -24,9 +24,11 @@
             <div class="list-menu">
               <bb-icon
                 class="hover list-menu-icon-fav"
+                :class="{ 'is-favorite': isFavorite(item.id) }"
                 :type="isFavorite(item.id) ? 'aixin1' : 'aixin'"
                 :size="40"
                 @click.stop.prevent="toggleFavorite(item)"
+                @dblclick.stop.prevent
               />
               <bb-icon
                 class="hover"
@@ -44,7 +46,7 @@
             <bb-icon
               class="hover list-menu-icon-del"
               type="delete-mini"
-              :size="40"
+              :size="35"
               @click.stop="deleteItem(index)"
             />
           </span>
@@ -217,9 +219,10 @@ defineExpose({
 
   &.on {
     color: #fff;
+    background-color: rgba(255, 255, 255, 0.12);
 
     .list-num {
-      font-size: 0;
+      // font-size: 0;
       background: url('~assets/img/wave.gif') no-repeat center center;
     }
   }
@@ -293,6 +296,9 @@ defineExpose({
 
   .list-menu-icon-fav {
     margin-right: 12px;
+  }
+  .list-menu-icon-fav.is-favorite {
+    color: #ff4d4f;
   }
 
   .list-artist,

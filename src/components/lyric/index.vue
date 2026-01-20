@@ -15,8 +15,12 @@
       <template v-else>
         <dd>BbPlayer在线音乐播放器</dd>
         <dd>
-          <a class="hover" target="_blank" href="https://github.com/maomao1996">
-            <bb-icon type="github" :size="14" />
+          <a
+            class="hover github-link"
+            target="_blank"
+            href="https://github.com/yunjiaizhake/vue3-template/tree/Graduation-project"
+          >
+            <bb-icon type="github" :size="16" />
             &nbsp;波波
           </a>
         </dd>
@@ -150,6 +154,11 @@ defineExpose({
     height: 30px;
     line-height: 30px;
     .no-wrap();
+  }
+  .github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 }
 
