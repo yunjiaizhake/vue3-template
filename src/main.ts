@@ -9,7 +9,7 @@ import VueLazyload from 'vue3-lazyload';
 import '@/styles/index.less';
 import bbToast from '@/base/bb-toast';
 import Icon from '@/base/bb-icon/index.vue';
-import { initAiChatWs } from '@/pages/aiChatOnline/wsSignal';
+import { initAiChatWs } from '@/api/ws';
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);

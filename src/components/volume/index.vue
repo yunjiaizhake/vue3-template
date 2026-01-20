@@ -18,7 +18,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import BbProgress from '@/base/bb-progress/index.vue';
 
 // ------------------------------ props ------------------------------
@@ -56,9 +56,17 @@ function handleToggleVolume() {
   isMute.value = !isMute.value;
 }
 
-function handleVolumeChange(percent) {
+function handleVolumeChange(percent:number) {
   emit('volumeChange', percent);
 }
+
+// ------------------------------ 暴露------------------------------
+export interface ChildExpose {
+  handleToggleVolume: () => void
+}
+defineExpose<ChildExpose>({
+  handleToggleVolume,
+});
 </script>
 
 <style scoped lang="less">

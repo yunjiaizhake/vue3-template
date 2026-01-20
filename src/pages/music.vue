@@ -102,7 +102,7 @@
 
       <!-- 音量控制 -->
       <div class="music-bar-volume" title="音量加减 [Ctrl + Up / Down]">
-        <volume :volume="volume" @volumeChange="volumeChange" />
+        <volume :volume="volume" @volumeChange="volumeChange" ref="volumeRef" />
       </div>
     </div>
 
@@ -129,7 +129,7 @@ import { searchAndPlay } from '@/utils/aiplay';
 import BbProgress from '@/base/bb-progress/index.vue';
 import MusicBtn from '@/components/music-btn/index.vue';
 import Lyric from '@/components/lyric/index.vue';
-import Volume from '@/components/volume/index.vue';
+import Volume, { type ChildExpose } from '@/components/volume/index.vue';
 import type { SongDetailItem, LyricLine } from '@/types/dataTypes';
 import { useAiEventBusStore } from '@/stores/aiEventBus';
 
@@ -142,10 +142,10 @@ const lyricVisible = ref<boolean>(false);
 const lyric = ref<LyricLine[]>([]);
 const nolyric = ref<boolean>(false);
 const lyricIndex = ref<number>(0);
-const isMute = ref<boolean>(false);
 
 const { proxy } = getCurrentInstance()!; // 拿到当前实例
 const lyricRef = useTemplateRef('lyricRef');
+const volumeRef = ref<ChildExpose | null>(null);
 
 // ------------------------------ 路由 & store ------------------------------
 const route = useRoute();
@@ -247,6 +247,38 @@ watch(
   (event) => {
     if (!event) return;
     searchAndPlay(event.payload as string);
+  },
+);
+watch(
+  () => aiBus.volume_control,
+  (event) => {
+    console.log('11111111111111111111111', event, audioEle.value!.muted);
+    const action = event?.action || 'up';
+    const value = event?.value || 0.2;
+    const applyDelta = (delta: number) => {
+      const nextValue = Math.max(0, Math.min(1, volume.value + delta));
+      volumeChange(Number(nextValue.toFixed(2)));
+    };
+    switch (action) {
+      case 'mute':
+        if (!audioEle.value!.muted) volumeRef.value?.handleToggleVolume();
+        break;
+      case 'unmute':
+        if (audioEle.value!.muted) volumeRef.value?.handleToggleVolume();
+        break;
+      case 'down': {
+        applyDelta(-value);
+        break;
+      }
+      case 'set': {
+        volumeChange(value);
+        break;
+      }
+      case 'up':
+      default: {
+        applyDelta(value);
+      }
+    }
   },
 );
 
@@ -409,8 +441,8 @@ function isMusicPlay() {
 }
 
 function volumeChange(percent: number) {
-  isMute.value = percent === 0;
   volume.value = percent;
+  audioEle.value!.muted = percent === 0;
   audioEle.value!.volume = percent;
   setVolume(percent);
 }

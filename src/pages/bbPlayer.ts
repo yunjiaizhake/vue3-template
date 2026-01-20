@@ -1,5 +1,5 @@
 import { PLAY_MODE } from '@/config';
-import { sendPlayerStatus } from '@/pages/aiChatOnline/wsSignal';
+import { sendPlayerStatus } from '@/api/ws';
 import type { SongDetailItem, vipSong } from '@/types/dataTypes';
 import { getMusicUrl } from '@/api/index';
 interface BbPlayerMusicContext {
