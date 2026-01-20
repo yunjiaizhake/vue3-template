@@ -12,6 +12,7 @@ import type {
   HotListResponse,
   PlaylistResponse,
   CommentMetaResponse,
+  SongDetailItem,
 } from '@/types/dataTypes';
 
 // 排行榜列表
@@ -134,5 +135,20 @@ export function getComment(
 export function getAiChat(prompt: string) {
   return post('/gpt/chat/stream', {
     prompt,
+  });
+}
+
+// 获取收藏列表（数据库）
+export function getFavoriteListByUid(uid: string) {
+  return get<{ code: number; data: SongDetailItem[] }>('/favorite/list', {
+    params: { uid },
+  });
+}
+
+// 保存收藏列表（数据库）
+export function saveFavoriteListByUid(uid: string, list: SongDetailItem[]) {
+  return post<{ code: number; data: SongDetailItem[] }>('/favorite/list', {
+    uid,
+    list,
   });
 }

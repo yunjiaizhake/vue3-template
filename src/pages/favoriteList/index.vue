@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import { usePlayerStore } from '@/stores';
+import { useFavoriteStore } from '@/stores/favorite_list';
 import MusicList from '@/components/music-list/index.vue';
 import BbDialog from '@/base/bb-dialog/index.vue';
 import type { SongDetailItem } from '@/types/dataTypes';
@@ -32,25 +33,30 @@ import type { SongDetailItem } from '@/types/dataTypes';
 const { proxy } = getCurrentInstance()!;
 
 // ------------------------------ store ------------------------------
-const store = usePlayerStore();
+const favoriteStore = useFavoriteStore();
+const playerStore = usePlayerStore();
 
 // ------------------------------ refs ------------------------------
 const dialogRef = useTemplateRef('dialogRef');
 
 // ------------------------------ computed ------------------------------
-const favoriteList = computed(() => store.favoriteList);
+const favoriteList = computed(() => favoriteStore.favoriteList);
 
 // ------------------------------ methods ------------------------------
 
+onMounted(() => {
+  favoriteStore.initFavoriteList();
+});
+
 // 清空列表事件
 function clearList() {
-  store.clearFavorite();
+  favoriteStore.clearFavorite();
   proxy!.$bbToast('列表清空成功');
 }
 
 // 播放事件
 function selectItem(_item: SongDetailItem, index: number) {
-  store.selectPlay({
+  playerStore.selectPlay({
     list: favoriteList.value,
     index,
   });
@@ -60,7 +66,7 @@ function selectItem(_item: SongDetailItem, index: number) {
 function deleteItem(index: number) {
   const list = [...favoriteList.value];
   list.splice(index, 1);
-  store.removeFavorite(list);
+  favoriteStore.removeFavorite(list);
   proxy!.$bbToast('删除成功');
 }
 </script>

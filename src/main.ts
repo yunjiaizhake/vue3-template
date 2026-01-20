@@ -10,6 +10,7 @@ import '@/styles/index.less';
 import bbToast from '@/base/bb-toast';
 import Icon from '@/base/bb-icon/index.vue';
 import { initAiChatWs } from '@/api/ws';
+import { useFavoriteStore } from '@/stores/favorite_list';
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
@@ -28,4 +29,5 @@ app.use(VueLazyload, {
 
 app.use(pinia);
 initAiChatWs();
+useFavoriteStore().initFavoriteList();
 app.use(router).mount('#app');

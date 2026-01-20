@@ -64,6 +64,7 @@
 
 <script setup lang="ts">
 import { usePlayerStore } from '@/stores/index.ts';
+import { useFavoriteStore } from '@/stores/favorite_list';
 import BbNoResult from '@/base/bb-no-result/index.vue';
 import { format } from '@/utils/util';
 import type { SongObjectType } from '@/types/dataTypes';
@@ -87,9 +88,10 @@ const emit = defineEmits(['select', 'del', 'pullUp']);
 
 // ------------------------------ store ------------------------------
 const store = usePlayerStore();
+const favoriteStore = useFavoriteStore();
 const playing = computed(() => store.playing);
 const currentMusic = computed(() => store.currentMusic);
-const favoriteList = computed(() => store.favoriteList);
+const favoriteList = computed(() => favoriteStore.favoriteList);
 
 // ------------------------------ state ------------------------------
 const listContent = useTemplateRef<HTMLDivElement>('listContent');
@@ -161,7 +163,7 @@ function isFavorite(id: string) {
 }
 
 function toggleFavorite(item: SongObjectType) {
-  store.toggleFavorite(item);
+  favoriteStore.toggleFavorite(item);
 }
 
 function deleteItem(index: number) {
