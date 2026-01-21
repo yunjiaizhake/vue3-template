@@ -1,8 +1,8 @@
 <template>
-  <div class="music flex-col">
+  <div class="music flex-col" @contextmenu="handleContextMenu">
     <div class="music-content">
       <div class="music-left flex-col">
-        <music-btn @onClickLyric="handleOpenLyric" />
+        <music-btn />
         <router-view v-slot="{ Component }">
           <keep-alive>
             <component
@@ -20,14 +20,8 @@
           />
         </router-view>
       </div>
-      <div class="music-right" :class="{ show: lyricVisible }">
-        <div class="close-lyric" @click="handleCloseLyric">关闭歌词</div>
-        <lyric
-          ref="lyricRef"
-          :lyric="lyric"
-          :nolyric="nolyric"
-          :lyric-index="lyricIndex"
-        />
+      <div class="music-right">
+        <lyric :lyric="lyric" :nolyric="nolyric" :lyric-index="lyricIndex" />
       </div>
     </div>
 
@@ -109,6 +103,13 @@
     <!--遮罩-->
     <div class="mmPlayer-bg" :style="{ backgroundImage: picUrl }"></div>
     <div class="mmPlayer-mask"></div>
+
+    <!-- 右键菜单 -->
+    <music-context-menu
+      ref="contextMenuRef"
+      :items="contextMenuItems"
+      @select="handleContextMenuSelect"
+    />
   </div>
 </template>
 
@@ -132,20 +133,22 @@ import Lyric from '@/components/lyric/index.vue';
 import Volume, { type ChildExpose } from '@/components/volume/index.vue';
 import type { SongDetailItem, LyricLine } from '@/types/dataTypes';
 import { useAiEventBusStore } from '@/stores/aiEventBus';
+import MusicContextMenu from '@/components/music-context-menu/index.vue';
+import type { ContextMenuItem } from '@/hooks/useContextMenu';
 
 // ------------------------------ 数据 ------------------------------
 const volume = ref<number>(getVolume());
 const musicReady = ref<boolean>(false);
 const currentTime = ref<number>(0);
 const currentProgress = ref<number>(0);
-const lyricVisible = ref<boolean>(false);
 const lyric = ref<LyricLine[]>([]);
 const nolyric = ref<boolean>(false);
 const lyricIndex = ref<number>(0);
 
 const { proxy } = getCurrentInstance()!; // 拿到当前实例
-const lyricRef = useTemplateRef('lyricRef');
 const volumeRef = ref<ChildExpose | null>(null);
+const contextMenuRef =
+  useTemplateRef<InstanceType<typeof MusicContextMenu>>('contextMenuRef');
 
 // ------------------------------ 路由 & store ------------------------------
 const route = useRoute();
@@ -172,6 +175,21 @@ const picUrl = computed(() => {
 const percentMusic = computed(() => {
   const duration = currentMusic.value.duration;
   return currentTime.value && duration ? currentTime.value / duration : 0;
+});
+
+// 自定义右键菜单数据
+const contextMenuItems = computed<ContextMenuItem[]>(() => {
+  const hasMusic = Boolean(currentMusic.value?.id);
+  return [
+    {
+      key: 'play',
+      label: playing.value ? '暂停' : '播放',
+      disabled: !hasMusic,
+    },
+    { key: 'prev', label: '上一曲', disabled: !hasMusic },
+    { key: 'next', label: '下一曲', disabled: !hasMusic },
+    { key: 'comment', label: '评论', disabled: !hasMusic },
+  ];
 });
 
 // ------------------------------ watch ------------------------------
@@ -208,11 +226,7 @@ watch(currentTime, (newTime) => {
   lyricIndex.value = index;
 });
 
-watch(route, () => {
-  lyricVisible.value = false;
-});
-
-// ------------------------------ 生命周期 ------------------------------
+// ------------------------------ 生命周期 & 监听 ------------------------------
 onMounted(() => {
   nextTick(() => {
     if (audioEle.value) {
@@ -252,7 +266,6 @@ watch(
 watch(
   () => aiBus.volume_control,
   (event) => {
-    console.log('11111111111111111111111', event, audioEle.value!.muted);
     const action = event?.action || 'up';
     const value = event?.value || 0.2;
     const applyDelta = (delta: number) => {
@@ -466,15 +479,26 @@ function getModeIconTitle() {
   }[mode.value];
 }
 
-function handleOpenLyric() {
-  lyricVisible.value = true;
-  nextTick(() => {
-    if (lyricRef.value) lyricRef.value.calcTop();
-  });
+function handleContextMenu(event: MouseEvent) {
+  contextMenuRef.value?.open(event);
 }
-
-function handleCloseLyric() {
-  lyricVisible.value = false;
+// 处理自定义右键菜单行为
+function handleContextMenuSelect(key: string) {
+  switch (key) {
+    case 'prev':
+      prev();
+      break;
+    case 'next':
+      next();
+      break;
+    case 'play':
+      play();
+      break;
+    case 'comment':
+      openComment();
+      break;
+  }
+  contextMenuRef.value?.close();
 }
 
 function _getLyric(id: string) {
@@ -651,11 +675,11 @@ function _getLyric(id: string) {
   @media (max-width: 960px) {
     .music-right {
       display: none;
-      &.show {
-        display: block;
-        margin-left: 0;
-        width: 100%;
-      }
+      // &.show {
+      //   display: block;
+      //   margin-left: 0;
+      //   width: 100%;
+      // }
     }
   }
   //当屏幕小于768时
