@@ -18,7 +18,7 @@
       href="//at.alicdn.com/t/c/font_5113032_vwf3ic5q90q.css"
     />
     <style type="text/css">
-      #app {
+      #appLoading {
         position: fixed;
         top: 0;
         left: 0;
@@ -28,10 +28,10 @@
         font-size: 20px;
         background: rgba(255, 255, 255, 1);
       }
-      #app.removeAnimate {
+      #appLoading.removeAnimate {
         animation: removeAnimate 0.3s 0.5s 1 both;
       }
-      #app .loader {
+      #appLoading .loader {
         position: absolute;
         top: 50%;
         left: 50%;
@@ -39,8 +39,8 @@
         height: 5em;
         transform: translate(-50%, -50%) rotate(165deg);
       }
-      #app .loader::before,
-      #app .loader::after {
+      #appLoading .loader::before,
+      #appLoading .loader::after {
         content: '';
         position: absolute;
         top: 50%;
@@ -51,10 +51,10 @@
         border-radius: 0.5em;
         transform: translate(-50%, -50%);
       }
-      #app .loader::before {
+      #appLoading .loader::before {
         animation: before 2s infinite;
       }
-      #app .loader::after {
+      #appLoading .loader::after {
         animation: after 2s infinite;
       }
       @keyframes before {

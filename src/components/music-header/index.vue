@@ -9,7 +9,7 @@
     <dl class="user">
       <template v-if="user.userId">
         <router-link class="user-info" to="/music/userlist">
-          <img class="avatar" :src="`${user.avatarUrl}?param=50y50`" />
+          <img class="avatar" v-lazy="`${user.avatarUrl}?param=50y50`" />
           <span>{{ user.nickname }}</span>
         </router-link>
         <dd class="user-btn" @click="openDialog(2)">退出</dd>

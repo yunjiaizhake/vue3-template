@@ -3,7 +3,7 @@
     <!--封面-->
     <dl class="music-info">
       <dt>
-        <img :src="musicPicUrl" />
+        <img v-lazy="musicPicUrl" />
       </dt>
 
       <template v-if="currentMusic.id">
@@ -71,13 +71,6 @@ const props = withDefaults(
 
 // ------------------------------ store ------------------------------
 const store = usePlayerStore();
-type Music = {
-  id?: number | string;
-  name?: string;
-  singer?: string;
-  album?: string;
-  image?: string;
-};
 const currentMusic = computed<SongDetailItem>(() => store.currentMusic || {});
 
 // ------------------------------ state ------------------------------

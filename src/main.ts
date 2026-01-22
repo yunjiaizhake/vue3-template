@@ -5,6 +5,7 @@ import router from '@/router';
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import VueLazyload from 'vue3-lazyload';
+import defaultImg from '@/assets/img/default.png';
 
 import '@/styles/index.less';
 import bbToast from '@/base/bb-toast';
@@ -23,8 +24,8 @@ app.component('BbIcon', Icon);
 // 注册全局插件
 app.use(bbToast);
 app.use(VueLazyload, {
-  preLoad: 1,
-  loading: '@/assets/img/default.png',
+  loading: defaultImg,
+  error: defaultImg,
 });
 
 app.use(pinia);
