@@ -42,7 +42,12 @@
           <bb-icon :type="msg.role === 'user' ? 'user' : 'robot'" :size="24" />
         </div>
         <div class="message-content">
-          <div class="message-text">{{ msg.content }}</div>
+          <div
+            v-if="msg.role === 'assistant'"
+            class="message-text markdown-body"
+            v-html="renderMarkdown(msg.content)"
+          ></div>
+          <div v-else class="message-text">{{ msg.content }}</div>
         </div>
       </div>
 
@@ -52,8 +57,12 @@
           <bb-icon type="robot" :size="24" />
         </div>
         <div class="message-content">
-          <div class="message-text">
-            {{ streamingContent || '思考中...' }}
+          <div v-if="streamingContent" class="message-text markdown-body">
+            <span v-html="renderMarkdown(streamingContent)"></span>
+            <span class="cursor-blink">|</span>
+          </div>
+          <div v-else class="message-text">
+            <span>思考中...</span>
             <span class="cursor-blink">|</span>
           </div>
         </div>
@@ -87,6 +96,7 @@ defineOptions({ name: 'music-ai-chat-online' });
 
 import { useAiChatOnlineStore } from '@/stores/aiChatOnline';
 import { storeToRefs } from 'pinia';
+import { marked } from 'marked';
 
 // ------------------------------ Store ------------------------------
 const aiChatStore = useAiChatOnlineStore();
@@ -99,6 +109,17 @@ const messageListRef = useTemplateRef<HTMLDivElement>('messageListRef');
 let abortController: AbortController | null = null; // 用于终止请求
 
 // ------------------------------ 方法 ------------------------------
+const escapeHtml = (text: string) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const markdownRenderer = new marked.Renderer();
+markdownRenderer.html = (html) => escapeHtml(String(html));
+
+marked.setOptions({ breaks: false, gfm: true, renderer: markdownRenderer });
+
+function renderMarkdown(content: string) {
+  return marked.parse(content || '') as string;
+}
 
 // 滚动到底部
 function scrollToBottom() {
@@ -368,7 +389,7 @@ onActivated(() => {
 
 .message-item {
   display: flex;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
   animation: fadeIn 0.3s ease;
 
   &.user {
@@ -416,7 +437,78 @@ onActivated(() => {
   color: #fff;
   line-height: 1.6;
   word-break: break-word;
-  white-space: pre-wrap;
+  white-space: normal;
+}
+
+:deep(.markdown-body) {
+  white-space: normal;
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 12px 0 8px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  h2 {
+    font-size: 16px;
+  }
+
+  h3 {
+    font-size: 14px;
+  }
+
+  strong {
+    font-weight: 700;
+  }
+
+  p {
+    margin: 8px 0;
+  }
+
+  ul,
+  ol {
+    list-style-position: outside;
+    padding-left: 18px;
+    margin: 8px 0 12px;
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  li {
+    margin: 5px 0;
+  }
+
+  code {
+    padding: 0 4px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      'Liberation Mono', 'Courier New', monospace;
+  }
+
+  pre {
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: auto;
+  }
+
+  pre code {
+    padding: 0;
+    background: transparent;
+  }
 }
 
 .cursor-blink {
