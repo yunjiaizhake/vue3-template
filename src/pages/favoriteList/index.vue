@@ -24,6 +24,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music-favoritelist' });
+
 import { usePlayerStore } from '@/stores';
 import { useFavoriteStore } from '@/stores/favorite_list';
 import MusicList from '@/components/music-list/index.vue';

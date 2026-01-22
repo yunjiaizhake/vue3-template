@@ -96,6 +96,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music-ai-chat-local' });
+
 import ollama from 'ollama';
 import type { Message } from 'ollama';
 import { useAiChatStore } from '@/stores/aiChatLocal';

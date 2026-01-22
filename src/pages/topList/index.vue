@@ -59,6 +59,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music-toplist' });
+
 import { getToplistDetail, getPersonalized } from '@/api';
 import BbLoading from '@/base/bb-loading/index.vue';
 import { useLoad } from '@/hooks/useload';

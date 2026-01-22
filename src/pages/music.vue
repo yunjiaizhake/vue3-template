@@ -4,20 +4,16 @@
       <div class="music-left flex-col">
         <music-btn />
         <router-view v-slot="{ Component }">
-          <keep-alive>
-            <component
-              v-if="route.meta.keepAlive"
-              :is="Component"
-              :key="route.name"
-              class="router-view"
-            />
-          </keep-alive>
-          <component
-            v-if="!route.meta.keepAlive"
-            :is="Component"
-            :key="$route.fullPath"
-            class="router-view"
-          />
+          <div class="router-view-wrapper">
+            <transition name="music-fade">
+              <keep-alive :include="cachedRoutes">
+                <component
+                  :is="Component"
+                  class="router-view"
+                />
+              </keep-alive>
+            </transition>
+          </div>
         </router-view>
       </div>
       <div class="music-right">
@@ -114,6 +110,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music' });
+
 import { usePlayerStore } from '@/stores/index.ts';
 import { getLyric } from '@/api';
 import bbPlayerMusic from './bbPlayer';
@@ -152,6 +150,18 @@ const contextMenuRef =
 
 // ------------------------------ 路由 & store ------------------------------
 const route = useRoute();
+const cachedRoutes = ref<string[]>([]);
+
+watch(
+  () => route.name,
+  () => {
+    if (!route.meta.keepAlive || typeof route.name !== 'string') return;
+    if (!cachedRoutes.value.includes(route.name)) {
+      cachedRoutes.value.push(route.name);
+    }
+  },
+  { immediate: true },
+);
 const router = useRouter();
 const store = usePlayerStore();
 const aiBus = useAiEventBusStore();
@@ -514,11 +524,30 @@ function _getLyric(id: string) {
 }
 </script>
 <style lang="less">
-.router-view {
+.router-view-wrapper {
+  position: relative;
   flex: 1;
+  min-height: 0;
+}
+
+.router-view {
+  position: absolute;
+  inset: 0;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.music-fade-enter-active,
+.music-fade-leave-active {
+  transition: opacity 0.5s ease;
+  position: absolute;
+  inset: 0;
+}
+
+.music-fade-enter-from,
+.music-fade-leave-to {
+  opacity: 0;
 }
 
 .music {

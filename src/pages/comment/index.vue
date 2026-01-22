@@ -87,6 +87,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music-comment' });
+
 import { getComment } from '@/api';
 import { formatTime } from '@/utils/util';
 import BbLoading from '@/base/bb-loading/index.vue';

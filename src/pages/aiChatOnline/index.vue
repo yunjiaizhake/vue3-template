@@ -83,6 +83,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music-ai-chat-online' });
+
 import { useAiChatOnlineStore } from '@/stores/aiChatOnline';
 import { storeToRefs } from 'pinia';
 

@@ -31,6 +31,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music-userlist' });
+
 import { usePlayerStore } from '@/stores';
 import { getUserPlaylist } from '@/api';
 import BbLoading from '@/base/bb-loading/index.vue';

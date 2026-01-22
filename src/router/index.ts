@@ -7,11 +7,13 @@ const routes = [
   },
   {
     path: '/music',
+    name: 'music',
     component: () => import('@/pages/music.vue'),
     redirect: '/music/playlist',
     children: [
       {
         path: '/music/playlist', // 正在播放列表
+        name: 'music-playlist',
         component: () => import('@/pages/playList/index.vue'),
         meta: {
           keepAlive: true,
@@ -19,6 +21,7 @@ const routes = [
       },
       {
         path: '/music/userlist', // 我的歌单
+        name: 'music-userlist',
         component: () => import('@/pages/userList/index.vue'),
         meta: {
           title: '我的歌单',
@@ -27,6 +30,7 @@ const routes = [
       },
       {
         path: '/music/toplist', // 排行榜列表
+        name: 'music-toplist',
         component: () => import('@/pages/topList/index.vue'),
         meta: {
           title: '排行榜',
@@ -35,10 +39,12 @@ const routes = [
       },
       {
         path: '/music/details/:id', // 音乐详情列表
+        name: 'music-details',
         component: () => import('@/pages/details/index.vue'),
       },
       {
         path: '/music/historylist', // 我听过的列表
+        name: 'music-historylist',
         component: () => import('@/pages/historyList/index.vue'),
         meta: {
           title: '我听过的',
@@ -46,6 +52,7 @@ const routes = [
       },
       {
         path: '/music/favoritelist', // 收藏列表
+        name: 'music-favoritelist',
         component: () => import('@/pages/favoriteList/index.vue'),
         meta: {
           title: '我收藏的',
@@ -53,6 +60,7 @@ const routes = [
       },
       {
         path: '/music/search', // 搜索
+        name: 'music-search',
         component: () => import('@/pages/search/index.vue'),
         meta: {
           title: '搜索',
@@ -61,6 +69,7 @@ const routes = [
       },
       {
         path: '/music/comment/:id', // 音乐评论
+        name: 'music-comment',
         component: () => import('@/pages/comment/index.vue'),
         meta: {
           title: '评论详情',
@@ -69,6 +78,7 @@ const routes = [
       },
       {
         path: '/music/ai-chat', // AI 聊天 (本地)
+        name: 'music-ai-chat-local',
         component: () => import('@/pages/aiChatLocal/index.vue'),
         meta: {
           title: 'AI 助手(本地)',
@@ -77,6 +87,7 @@ const routes = [
       },
       {
         path: '/music/ai-chat-online', // AI 聊天 (在线)
+        name: 'music-ai-chat-online',
         component: () => import('@/pages/aiChatOnline/index.vue'),
         meta: {
           title: 'AI 助手(在线)',

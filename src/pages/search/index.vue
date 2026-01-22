@@ -34,6 +34,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music-search' });
+
 import { usePlayerStore } from '@/stores';
 import { search, searchHot, getMusicDetail } from '@/api';
 import { formatSongs } from '@/utils/song';

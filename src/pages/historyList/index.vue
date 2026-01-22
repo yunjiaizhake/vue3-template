@@ -24,6 +24,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music-historylist' });
+
 import { usePlayerStore } from '@/stores';
 import MusicList from '@/components/music-list/index.vue';
 import BbDialog from '@/base/bb-dialog/index.vue';

@@ -7,6 +7,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'music-details' });
+
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { usePlayerStore } from '@/stores/index.ts';
