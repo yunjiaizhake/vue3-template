@@ -28,7 +28,7 @@
     </dl>
 
     <!--歌词-->
-    <div ref="musicLyric" class="music-lyric">
+    <div ref="musicLyric" class="music-lyric" @wheel.prevent="handleWheel">
       <div class="music-lyric-items" :style="lyricTop">
         <p v-if="!currentMusic.id">还没有播放音乐哦！</p>
         <p v-else-if="props.nolyric">暂无歌词！</p>
@@ -38,6 +38,7 @@
             v-for="(item, index) in props.lyric"
             :key="index"
             :class="{ on: props.lyricIndex === index }"
+            @dblclick="handleLyricDblClick(item.time)"
           >
             {{ item.text }}
           </p>
@@ -52,10 +53,9 @@
 <script setup lang="ts">
 import { usePlayerStore } from '@/stores/index.ts';
 import playerCover from '../../assets/img/player_cover.png';
-import type { SongDetailItem } from '@/types/dataTypes';
+import type { SongDetailItem, LyricLine } from '@/types/dataTypes';
 
 // ------------------------------ props ------------------------------
-type LyricLine = { text: string };
 const props = withDefaults(
   defineProps<{
     lyric: LyricLine[]; // 当前播放歌曲的歌词内容
@@ -69,6 +69,10 @@ const props = withDefaults(
   },
 );
 
+const emit = defineEmits<{
+  (event: 'seek', time: number): void;
+}>();
+
 // ------------------------------ store ------------------------------
 const store = usePlayerStore();
 const currentMusic = computed<SongDetailItem>(() => store.currentMusic || {});
@@ -76,6 +80,7 @@ const currentMusic = computed<SongDetailItem>(() => store.currentMusic || {});
 // ------------------------------ state ------------------------------
 const musicLyric = ref<HTMLDivElement | null>(null);
 const top = ref(0);
+const manualOffset = ref(0);
 
 // 封面
 const musicPicUrl = computed(() => {
@@ -86,10 +91,38 @@ const musicPicUrl = computed(() => {
 
 // 歌词偏移
 const lyricTop = computed(() => {
-  return `transform: translate3d(0, ${-34 * (props.lyricIndex - top.value)}px, 0)`;
+  return `transform: translate3d(0, ${-34 * (props.lyricIndex - top.value + manualOffset.value)}px, 0)`;
 });
 
 // ------------------------------ methods ------------------------------
+const AUTO_FOCUS_DELAY = 2500;
+let autoFocusTimer: number | null = null;
+
+const clampOffset = (offset: number) => {
+  if (!props.lyric.length) return 0;
+  const min = -props.lyricIndex;
+  const max = props.lyric.length - 1 - props.lyricIndex;
+  return Math.min(Math.max(offset, min), max);
+};
+
+const scheduleAutoFocus = () => {
+  if (autoFocusTimer) window.clearTimeout(autoFocusTimer);
+  autoFocusTimer = window.setTimeout(() => {
+    manualOffset.value = 0;
+  }, AUTO_FOCUS_DELAY);
+};
+
+const handleWheel = (event: WheelEvent) => {
+  if (!props.lyric.length) return;
+  const direction = event.deltaY > 0 ? 1 : -1;
+  manualOffset.value = clampOffset(manualOffset.value + direction);
+  scheduleAutoFocus();
+};
+
+const handleLyricDblClick = (time: number) => {
+  manualOffset.value = 0;
+  emit('seek', Math.max(0, time + 1));
+};
 const calcTop = () => {
   const dom = musicLyric.value;
   if (!dom) return;
@@ -111,6 +144,24 @@ onMounted(() => {
   });
 
   nextTick(() => calcTop());
+});
+
+watch(
+  () => props.lyric,
+  () => {
+    manualOffset.value = 0;
+  },
+);
+
+watch(
+  () => props.lyricIndex,
+  () => {
+    manualOffset.value = clampOffset(manualOffset.value);
+  },
+);
+
+onBeforeUnmount(() => {
+  if (autoFocusTimer) window.clearTimeout(autoFocusTimer);
 });
 
 defineExpose({
@@ -180,9 +231,13 @@ defineExpose({
     transform: translate3d(0, 0, 0);
     transition: transform 0.6s ease-out;
     .no-wrap();
+    p {
+      cursor: pointer;
+      user-select: none;
+    }
     .on {
       color: @lyric_color_active;
-      transform: scale(1.5);
+      transform: scale(1.2);
     }
   }
 }

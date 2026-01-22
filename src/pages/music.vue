@@ -17,7 +17,12 @@
         </router-view>
       </div>
       <div class="music-right">
-        <lyric :lyric="lyric" :nolyric="nolyric" :lyric-index="lyricIndex" />
+        <lyric
+          :lyric="lyric"
+          :nolyric="nolyric"
+          :lyric-index="lyricIndex"
+          @seek="seekToLyric"
+        />
       </div>
     </div>
 
@@ -425,6 +430,13 @@ function progressMusic(percent: number) {
 
 function progressMusicEnd(percent: number) {
   audioEle.value!.currentTime = currentMusic.value.duration * percent;
+}
+
+// 点击歌词进行时间跳转
+function seekToLyric(time: number) {
+  if (!audioEle.value || !currentMusic.value?.id) return;
+  audioEle.value.currentTime = time;
+  currentTime.value = time;
 }
 
 function modeChange() {
