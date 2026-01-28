@@ -17,6 +17,7 @@ import BbHeader from '@/components/music-header/index.vue';
 import { getPlaylistDetail } from '@/api';
 import { MMPLAYER_CONFIG } from '@/config';
 import type { SongDetailItem } from '@/types/dataTypes';
+import { printLog } from './utils/util';
 
 // ------------------------------ store ------------------------------
 const playerStore = usePlayerStore();
@@ -29,6 +30,7 @@ const currentMusic = computed<SongDetailItem>(() => playerStore.currentMusic);
 
 // ------------------------------ 生命周期 ------------------------------
 onMounted(async () => {
+  printLog()
   // 设置audio元素
   playerStore.setAudioEle(bbPlayer.value!);
 

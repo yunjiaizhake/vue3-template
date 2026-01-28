@@ -19,37 +19,20 @@
     </dl>
 
     <!-- 登录 -->
-    <bb-dialog
-      ref="loginDialog"
-      head-text="登录"
-      confirm-btn-text="登录"
-      cancel-btn-text="关闭"
-      @confirm="login"
-    >
+    <bb-dialog ref="loginDialog" head-text="登录" confirm-btn-text="登录" cancel-btn-text="关闭" @confirm="login">
       <div class="bb-dialog-text">
-        <input
-          v-model.trim="uidValue"
-          class="bb-dialog-input"
-          type="number"
-          autofocus
-          placeholder="请输入您的网易云 UID"
-          @keyup.enter="login"
-        />
+        <input v-model.trim="uidValue" class="bb-dialog-input" type="number" autofocus placeholder="请输入您的网易云 UID"
+          @keyup.enter="login" />
       </div>
 
       <template #btn>
         <div @click="openDialog(1)">帮助</div>
+        <div @click="openDialog(3)">扫码登录</div>
       </template>
     </bb-dialog>
 
     <!-- 帮助 -->
-    <bb-dialog
-      ref="helpDialog"
-      head-text="登录帮助"
-      confirm-btn-text="去登录"
-      cancel-btn-text="关闭"
-      @confirm="openDialog(0)"
-    >
+    <bb-dialog ref="helpDialog" head-text="登录帮助" confirm-btn-text="去登录" cancel-btn-text="关闭" @confirm="openDialog(0)">
       <div class="bb-dialog-text">
         <p>
           1、
@@ -65,17 +48,32 @@
     </bb-dialog>
 
     <!-- 退出 -->
-    <bb-dialog
-      ref="outDialog"
-      body-text="确定退出当前用户吗？"
-      @confirm="out"
-    />
+    <bb-dialog ref="outDialog" body-text="确定退出当前用户吗？" @confirm="out" />
+
+    <!-- 扫码登录 -->
+    <bb-dialog ref="qrDialog" head-text="扫码登录" confirm-btn-text="去登录" cancel-btn-text="关闭" @confirm="openDialog(0)"
+      @cancel="closeQrDialog">
+      <div class="bb-dialog-text qr-login">
+        <div class="qr-box">
+          <img v-if="qrImg" :src="qrImg" alt="二维码" />
+          <div v-else class="qr-placeholder">二维码加载中…</div>
+        </div>
+        <p class="qr-status">{{ qrStatus }}</p>
+      </div>
+    </bb-dialog>
   </header>
 </template>
 
 <script setup lang="ts">
 import { usePlayerStore } from '@/stores/index.ts';
-import { getUserPlaylist } from '@/api';
+import {
+  getUserPlaylist,
+  getLoginQrKey,
+  getLoginQrCode,
+  checkLoginQr,
+  getLoginStatus,
+  logout,
+} from '@/api';
 import BbDialog from '@/base/bb-dialog/index.vue';
 import { toHttps } from '@/utils/util';
 import type { Creator as UserItem } from '@/types/dataTypes';
@@ -96,12 +94,19 @@ const loginDialog =
   useTemplateRef<InstanceType<typeof BbDialog>>('loginDialog');
 const helpDialog = useTemplateRef<InstanceType<typeof BbDialog>>('helpDialog');
 const outDialog = useTemplateRef<InstanceType<typeof BbDialog>>('outDialog');
+const qrDialog = useTemplateRef<InstanceType<typeof BbDialog>>('qrDialog');
+
+const qrImg = ref<string>('');
+const qrStatus = ref<string>('准备获取二维码…');
+let qrTimer: number | null = null;
+let qrKey = '';
 
 // ------------------------------ methods ------------------------------
 const openDialog = (key: number) => {
   switch (key) {
     case 0:
       loginDialog.value?.show();
+      clearQrTimer();
       break;
     case 1:
       loginDialog.value?.hide();
@@ -112,7 +117,66 @@ const openDialog = (key: number) => {
       break;
     case 3:
       loginDialog.value?.hide();
+      startQrLogin();
       break;
+  }
+};
+
+const closeQrDialog = () => {
+  qrDialog.value?.hide();
+  clearQrTimer();
+};
+
+const clearQrTimer = () => {
+  if (qrTimer) {
+    window.clearInterval(qrTimer);
+    qrTimer = null;
+  }
+};
+
+const startQrLogin = async () => {
+  clearQrTimer();
+  qrImg.value = '';
+  qrStatus.value = '正在获取二维码…';
+  qrDialog.value?.show();
+
+  try {
+    const keyRes = await getLoginQrKey();
+    qrKey = keyRes.data.unikey;
+    const qrRes = await getLoginQrCode(qrKey);
+    qrImg.value = qrRes.data.qrimg;
+    qrStatus.value = '请使用网易云音乐扫码';
+
+    qrTimer = window.setInterval(async () => {
+      const status = await checkLoginQr(qrKey);
+      console.log('[QR] check res', status);
+      if (status.code === 802) {
+        qrImg.value = status.avatarUrl || '';
+        qrStatus.value = `欢迎 ${status.nickname}, 请在手机上进行授权`;
+      }
+      if (status.code === 800) {
+        qrStatus.value = '二维码已过期，请重新获取';
+        clearQrTimer();
+        return;
+      }
+      if (status.code === 803) {
+        qrStatus.value = '授权成功，正在登录…';
+        clearQrTimer();
+        if (status.cookie) {
+          localStorage.setItem('cookie', status.cookie);
+        }
+        const loginStatus = await getLoginStatus(status.cookie);
+
+        const userId = loginStatus.data.profile?.userId
+        if (userId) {
+          app_getUserPlaylist(userId);
+          closeQrDialog();
+        }
+      }
+    }, 3000);
+  } catch (err) {
+    console.error('二维码登录失败:', err);
+    qrStatus.value = '二维码获取失败，请稍后重试';
   }
 };
 
@@ -120,6 +184,8 @@ const openDialog = (key: number) => {
 const out = () => {
   user.value = {};
   setUid(null);
+  localStorage.removeItem('cookie');
+  logout();
   proxy!.$bbToast?.('退出成功！');
 };
 
@@ -130,35 +196,43 @@ const login = () => {
     openDialog(0);
     return;
   }
-  openDialog(3);
+  loginDialog.value?.hide();
   app_getUserPlaylist(uidValue.value);
 };
 
 // 获取用户数据
 const app_getUserPlaylist = (uid: string) => {
-  getUserPlaylist(uid).then(({ playlist = [] }) => {
-    uidValue.value = '';
+  getUserPlaylist(uid)
+    .then(({ playlist = [] }) => {
+      uidValue.value = '';
 
-    if (!playlist.length || !playlist[0]!.creator) {
-      proxy!.$bbToast?.(`未查询到 UID 为 ${uid} 的用户信息`);
-      return;
-    }
+      if (!playlist.length || !playlist[0]!.creator) {
+        proxy!.$bbToast?.(`未查询到 UID 为 ${uid} 的用户信息`);
+        return;
+      }
 
-    const creator = playlist[0]!.creator;
-    setUid(uid);
+      const creator = playlist[0]!.creator;
+      setUid(uid);
 
-    creator.avatarUrl = toHttps(creator.avatarUrl);
-    user.value = creator;
+      creator.avatarUrl = toHttps(creator.avatarUrl);
+      user.value = creator;
 
-    setTimeout(() => {
-      proxy!.$bbToast?.(`${user.value.nickname} 欢迎使用 BbPlayer`);
-    }, 200);
-  });
+      setTimeout(() => {
+        proxy!.$bbToast?.(`${user.value.nickname} 欢迎使用 BbPlayer`);
+      }, 200);
+    })
+    .catch(() => {
+      proxy!.$bbToast?.('获取用户信息失败，请稍后重试');
+    });
 };
 
 // ------------------------------ 生命周期 ------------------------------
 onMounted(() => {
   if (uid.value) app_getUserPlaylist(uid.value);
+});
+
+onBeforeUnmount(() => {
+  clearQrTimer();
 });
 </script>
 
@@ -169,29 +243,36 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 60px;
+
   @media (max-width: 768px) {
     background: @header_bg_color;
   }
+
   .header {
     .flex-center;
     line-height: 60px;
     color: @text_color_active;
     font-size: @font_size_large;
+
     @media (max-width: 768px) {
       padding-left: 15px;
       justify-content: flex-start;
     }
+
     @media (max-width: 414px) {
       font-size: @font_size_medium;
     }
+
     .visitor {
       margin-left: 6px;
       height: 20px;
+
       @media (max-width: 414px) {
         display: none;
       }
     }
   }
+
   .user {
     position: absolute;
     top: 50%;
@@ -199,31 +280,38 @@ onMounted(() => {
     line-height: 30px;
     text-align: right;
     transform: translateY(-50%);
+
     &-info {
       float: left;
       margin-right: 15px;
       cursor: pointer;
+
       .avatar {
         width: 30px;
         height: 30px;
         border-radius: 50%;
         vertical-align: middle;
       }
+
       span {
         margin-left: 10px;
         color: @text_color_active;
       }
     }
+
     &-btn {
       float: left;
       cursor: pointer;
+
       &:hover {
         color: @text_color_active;
       }
     }
+
     @media (max-width: 768px) {
       &-info {
         margin-right: 10px;
+
         span {
           display: none;
         }
@@ -231,8 +319,10 @@ onMounted(() => {
     }
   }
 }
+
 .bb-dialog-text {
   text-align: left;
+
   .bb-dialog-input {
     width: 100%;
     height: 40px;
@@ -244,12 +334,45 @@ onMounted(() => {
     color: @text_color_active;
     font-size: @font_size_medium;
     box-shadow: 0 0 1px 0 #fff inset;
+
     &::placeholder {
       color: @text_color;
     }
   }
+
   a:hover {
     color: #d43c33;
+  }
+}
+
+.qr-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
+  .qr-box {
+    width: 180px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+
+    img {
+      width: 180px;
+      height: 180px;
+    }
+
+    .qr-placeholder {
+      color: @text_color;
+    }
+  }
+
+  .qr-status {
+    color: @text_color;
+    text-align: center;
   }
 }
 </style>

@@ -13,8 +13,9 @@ import type { PlaylistDetailResponse, Track } from './playlist_detail';
 import type {
   SongDetailResponse,
   SongObjectType,
-  vipSong,
+  VipSong,
 } from './song_detail';
+import type { UserIdentityDetail, UserLoginKey, UserLoginQRcode, UserLoginQRcodeStatus } from './user_identity';
 
 export type {
   ToplistItem,
@@ -36,5 +37,9 @@ export type {
   SearchResponse,
   HotItem,
   PlaylistResponse,
-  vipSong,
+  VipSong,
+  UserIdentityDetail,
+  UserLoginKey,
+  UserLoginQRcode,
+  UserLoginQRcodeStatus
 };

@@ -13,6 +13,10 @@ import type {
   PlaylistResponse,
   CommentMetaResponse,
   SongDetailItem,
+  UserLoginKey,
+  UserLoginQRcode,
+  UserIdentityDetail,
+  UserLoginQRcodeStatus
 } from '@/types/dataTypes';
 
 // 排行榜列表
@@ -150,5 +154,52 @@ export function saveFavoriteListByUid(uid: string, list: SongDetailItem[]) {
   return post<{ code: number; data: SongDetailItem[] }>('/favorite/list', {
     uid,
     list,
+  });
+}
+
+// 获取二维码 key
+export function getLoginQrKey() {
+  return get<UserLoginKey>('/login/qr/key', {
+    params: { timestamp: Date.now() },
+  });
+}
+
+// 生成二维码
+export function getLoginQrCode(key: string) {
+  return get<UserLoginQRcode>('/login/qr/create', {
+    params: {
+      key,
+      platform: 'web',
+      qrimg: true,
+      timestamp: Date.now(),
+      ua: 'pc',
+    },
+  });
+}
+
+// 轮询二维码状态
+export function checkLoginQr(key: string) {
+  return get<UserLoginQRcodeStatus>('/login/qr/check', {
+    params: {
+      key,
+      timestamp: Date.now(),
+      ua: 'pc',
+    },
+  });
+}
+
+// 登录状态（用 cookie 换取用户信息）
+export function getLoginStatus(cookie?: string) {
+  return post<{ code: number; data: UserIdentityDetail }>(
+    '/login/status',
+    { cookie },
+    { params: { timestamp: Date.now(), ua: 'pc' } },
+  );
+}
+
+// 退出登录
+export function logout() {
+  return get<{ code: number }>('/logout', {
+    params: { timestamp: Date.now() },
   });
 }

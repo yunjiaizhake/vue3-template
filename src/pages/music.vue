@@ -111,6 +111,10 @@
       :items="contextMenuItems"
       @select="handleContextMenuSelect"
     />
+    <ai-chat-voice
+      v-if="isVoiceModalOpen"
+      @close="isVoiceModalOpen = false"
+    />
   </div>
 </template>
 
@@ -137,6 +141,7 @@ import Volume, { type ChildExpose } from '@/components/volume/index.vue';
 import type { SongDetailItem, LyricLine } from '@/types/dataTypes';
 import { useAiEventBusStore } from '@/stores/aiEventBus';
 import MusicContextMenu from '@/components/music-context-menu/index.vue';
+import AiChatVoice from '@/pages/aiChatVoice/index.vue';
 import type { ContextMenuItem } from '@/hooks/useContextMenu';
 
 // ------------------------------ 数据 ------------------------------
@@ -152,6 +157,7 @@ const { proxy } = getCurrentInstance()!; // 拿到当前实例
 const volumeRef = ref<ChildExpose | null>(null);
 const contextMenuRef =
   useTemplateRef<InstanceType<typeof MusicContextMenu>>('contextMenuRef');
+const isVoiceModalOpen = ref(false);
 
 // ------------------------------ 路由 & store ------------------------------
 const route = useRoute();
@@ -203,7 +209,8 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
     },
     { key: 'prev', label: '上一曲', disabled: !hasMusic },
     { key: 'next', label: '下一曲', disabled: !hasMusic },
-    { key: 'comment', label: '评论', disabled: !hasMusic },
+    { key: 'comment', label: '打开评论', disabled: !hasMusic },
+    { key: 'voice', label:`${isVoiceModalOpen.value ? '关闭语音识别' : '打开语音识别'}`, disabled: false },
   ];
 });
 
@@ -518,6 +525,9 @@ function handleContextMenuSelect(key: string) {
       break;
     case 'comment':
       openComment();
+      break;
+    case 'voice':
+      isVoiceModalOpen.value = !isVoiceModalOpen.value;
       break;
   }
   contextMenuRef.value?.close();
