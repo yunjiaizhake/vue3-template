@@ -3,6 +3,12 @@
   <div ref="bbprogress" class="bbprogress" @click="barClick">
     <div class="bbprogress-bar"></div>
     <div ref="bbPercentProgress" class="bbprogress-outer"></div>
+    <div
+      v-for="(left, index) in markerPositions"
+      :key="index"
+      class="bbprogress-marker"
+      :style="{ left: `${left}px` }"
+    ></div>
     <div ref="bbProgressInner" class="bbprogress-inner">
       <!--  @touchstart.prevent="barDown" -->
       <div class="bbprogress-dot" @mousedown="barDown"></div>
@@ -24,6 +30,11 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  // 副歌部分标记点（0-1）
+  markers: {
+    type: Array as PropType<number[]>,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(['percentChange', 'percentChangeEnd']);
@@ -35,6 +46,8 @@ const bbPercentProgress = useTemplateRef<HTMLInputElement | null>(
 const bbProgressInner = useTemplateRef<HTMLInputElement | null>(
   'bbProgressInner',
 );
+
+const markerPositions = ref<number[]>([]);
 
 const move = ref({
   status: false, // 是否可拖动
@@ -62,6 +75,14 @@ watch(
   },
 );
 
+watch(
+  () => props.markers,
+  () => {
+    nextTick(() => updateMarkers());
+  },
+  { deep: true },
+);
+
 // ------------------------------ 生命周期 -------------------------------
 onMounted(() => {
   nextTick(() => {
@@ -69,6 +90,7 @@ onMounted(() => {
     const barWidth = bbprogress.value!.clientWidth - dotWidth;
     const offsetWidth = props.percent * barWidth;
     moveSilde(offsetWidth);
+    updateMarkers();
   });
 });
 
@@ -144,6 +166,14 @@ function commitPercent(isEnd = false) {
   const percent = bbProgressInner.value!.clientWidth / lineWidth;
   emit(isEnd ? 'percentChangeEnd' : 'percentChange', percent);
 }
+
+function updateMarkers() {
+  const barWidth = bbprogress.value!.clientWidth - dotWidth;
+  markerPositions.value = props.markers.map((value) => {
+    const clamped = Math.max(0, Math.min(1, value));
+    return 5 + clamped * barWidth;
+  });
+}
 </script>
 
 <style lang="less">
@@ -187,6 +217,17 @@ function commitPercent(isEnd = false) {
       background-color: @dot_color;
       transform: translateY(-50%);
     }
+  }
+
+  .bbprogress-marker {
+    position: absolute;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-radius: 50%;
+    background: #fff;
+    pointer-events: none;
   }
 }
 </style>

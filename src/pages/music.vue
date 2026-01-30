@@ -73,6 +73,7 @@
           class="music-progress"
           :percent="percentMusic"
           :percent-progress="currentProgress"
+          :markers="chorusMarkers"
           @percentChange="progressMusic"
           @percentChangeEnd="progressMusicEnd"
         />
@@ -122,7 +123,7 @@
 defineOptions({ name: 'music' });
 
 import { usePlayerStore } from '@/stores/index.ts';
-import { getLyric } from '@/api';
+import { getLyric, getChorus } from '@/api';
 import bbPlayerMusic from './bbPlayer';
 import {
   randomSortArray,
@@ -152,6 +153,7 @@ const currentProgress = ref<number>(0);
 const lyric = ref<LyricLine[]>([]);
 const nolyric = ref<boolean>(false);
 const lyricIndex = ref<number>(0);
+const chorusMarkers = ref<number[]>([]);
 
 const { proxy } = getCurrentInstance()!; // 拿到当前实例
 const volumeRef = ref<ChildExpose | null>(null);
@@ -227,6 +229,7 @@ watch(currentMusic, (newMusic, oldMusic) => {
   silencePromise(audioEle.value!.play());
   nextTick(() => {
     _getLyric(newMusic.id);
+    _getChorus(newMusic.id);
   });
 });
 
@@ -543,6 +546,25 @@ function _getLyric(id: string) {
     }
     silencePromise(audioEle.value!.play());
   });
+}
+
+// 获取歌词副歌部分
+function _getChorus(id: string) {
+  const duration = currentMusic.value.duration || 0;
+  if (!duration) {
+    chorusMarkers.value = [];
+    return;
+  }
+  getChorus(id)
+    .then((res) => {
+      const list = res.chorus || [];
+      chorusMarkers.value = list
+        .map((item) => item.startTime / 1000 / duration)
+        .filter((value) => value >= 0 && value <= 1);
+    })
+    .catch(() => {
+      chorusMarkers.value = [];
+    });
 }
 </script>
 <style lang="less">

@@ -16,7 +16,8 @@ import type {
   UserLoginKey,
   UserLoginQRcode,
   UserIdentityDetail,
-  UserLoginQRcodeStatus
+  UserLoginQRcodeStatus,
+  ChorusResponse
 } from '@/types/dataTypes';
 
 // 排行榜列表
@@ -114,6 +115,15 @@ export function getMusicUrl(id: string) {
 export function getLyric(id: string) {
   const url = '/lyric';
   return get<LyricResponse>(url, {
+    params: {
+      id,
+    },
+  });
+}
+
+// 获取副歌片段
+export function getChorus(id: string) {
+  return get<ChorusResponse>('/song/chorus', {
     params: {
       id,
     },
