@@ -17,7 +17,8 @@ import type {
   UserLoginQRcode,
   UserIdentityDetail,
   UserLoginQRcodeStatus,
-  ChorusResponse
+  ChorusResponse,
+  VipSong,
 } from '@/types/dataTypes';
 
 // 排行榜列表
@@ -104,7 +105,7 @@ export function getCheckMusic(id: string) {
 
 // 获取音乐地址
 export function getMusicUrl(id: string) {
-  return get('/song/url', {
+  return get<VipSong>('/song/url', {
     params: {
       id,
     },

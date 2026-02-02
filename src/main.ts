@@ -13,6 +13,8 @@ import Icon from '@/base/bb-icon/index.vue';
 import { initAiChatWs } from '@/api/ws';
 import { useFavoriteStore } from '@/stores/favorite_list';
 
+import '@/utils/logger';
+
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 

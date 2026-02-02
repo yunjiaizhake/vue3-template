@@ -103,8 +103,8 @@
     </div>
 
     <!--遮罩-->
-    <div class="mmPlayer-bg" :style="{ backgroundImage: picUrl }"></div>
-    <div class="mmPlayer-mask"></div>
+    <div class="bbPlayer-bg" :style="{ backgroundImage: picUrl }"></div>
+    <div class="bbPlayer-mask"></div>
 
     <!-- 右键菜单 -->
     <music-context-menu
@@ -112,6 +112,16 @@
       :items="contextMenuItems"
       @select="handleContextMenuSelect"
     />
+    <teleport to="body">
+      <music-immersive
+        :visible="isImmersive"
+        :current-music="currentMusic"
+        :lyric="lyric"
+        :nolyric="nolyric"
+        :lyric-index="lyricIndex"
+        @contextmenu="handleContextMenu"
+      />
+    </teleport>
     <ai-chat-voice
       v-if="isVoiceModalOpen"
       @close="isVoiceModalOpen = false"
@@ -131,7 +141,7 @@ import {
   format,
   silencePromise,
 } from '@/utils/util';
-import { PLAY_MODE, MMPLAYER_CONFIG } from '@/config';
+import { PLAY_MODE, BBPlayer_CONFIG } from '@/config';
 import { getVolume, setVolume } from '@/utils/storage';
 import { searchAndPlay } from '@/utils/aiplay';
 
@@ -142,6 +152,7 @@ import Volume, { type ChildExpose } from '@/components/volume/index.vue';
 import type { SongDetailItem, LyricLine } from '@/types/dataTypes';
 import { useAiEventBusStore } from '@/stores/aiEventBus';
 import MusicContextMenu from '@/components/music-context-menu/index.vue';
+import MusicImmersive from '@/components/music-immersive/index.vue';
 import AiChatVoice from '@/pages/aiChatVoice/index.vue';
 import type { ContextMenuItem } from '@/hooks/useContextMenu';
 
@@ -160,6 +171,12 @@ const volumeRef = ref<ChildExpose | null>(null);
 const contextMenuRef =
   useTemplateRef<InstanceType<typeof MusicContextMenu>>('contextMenuRef');
 const isVoiceModalOpen = ref(false);
+const isImmersive = ref(false);
+const syncFullscreen = () => {
+  if (!document.fullscreenElement && isImmersive.value) {
+    isImmersive.value = false;
+  }
+};
 
 // ------------------------------ 路由 & store ------------------------------
 const route = useRoute();
@@ -179,22 +196,25 @@ const router = useRouter();
 const store = usePlayerStore();
 const aiBus = useAiEventBusStore();
 
-const audioEle = computed(() => store.audioEle);
-const mode = computed(() => store.mode);
-const playing = computed(() => store.playing);
-const playlist = computed(() => store.playlist);
-const orderList = computed(() => store.orderList);
-const currentIndex = computed(() => store.currentIndex);
-const currentMusic = computed(() => store.currentMusic);
-const historyList = computed(() => store.historyList);
+const {
+  audioEle,
+  mode,
+  playing,
+  playlist,
+  orderList,
+  currentIndex,
+  currentMusic,
+  historyList,
+} = storeToRefs(store);
 
 // ------------------------------ 计算属性 ------------------------------
 const picUrl = computed(() => {
   return currentMusic.value.id && currentMusic.value.image
     ? `url(${currentMusic.value.image}?param=300y300)`
-    : `url(${MMPLAYER_CONFIG.BACKGROUND})`;
+    : `url(${BBPlayer_CONFIG.BACKGROUND})`;
 });
 
+// 副歌部分提示
 const percentMusic = computed(() => {
   const duration = currentMusic.value.duration;
   return currentTime.value && duration ? currentTime.value / duration : 0;
@@ -212,7 +232,16 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
     { key: 'prev', label: '上一曲', disabled: !hasMusic },
     { key: 'next', label: '下一曲', disabled: !hasMusic },
     { key: 'comment', label: '打开评论', disabled: !hasMusic },
-    { key: 'voice', label:`${isVoiceModalOpen.value ? '关闭语音识别' : '打开语音识别'}`, disabled: false },
+    {
+      key: 'immersive',
+      label: isImmersive.value ? '回到主页面' : '打开沉浸式体验',
+      disabled: !hasMusic && !isImmersive.value,
+    },
+    {
+      key: 'voice',
+      label: `${isVoiceModalOpen.value ? '关闭语音识别' : '打开语音识别'}`,
+      disabled: false,
+    },
   ];
 });
 
@@ -242,13 +271,26 @@ watch(playing, (newPlaying) => {
   });
 });
 
+function findLyricIndex(time: number) {
+  let left = 0;
+  let right = lyric.value.length - 1;
+
+  while (left <= right) {
+    const mid = (left + right) >> 1;
+
+    if (lyric.value[mid]!.time <= time) {
+      left = mid + 1;
+    } else {
+      right = mid - 1;
+    }
+  }
+
+  return right;
+}
+// 使用二分查找判断当前应该高亮哪一句歌词
 watch(currentTime, (newTime) => {
   if (nolyric.value) return;
-  let index = 0;
-  for (let i = 0; i < lyric.value.length; i++) {
-    if (newTime > lyric.value[i]!.time) index = i;
-  }
-  lyricIndex.value = index;
+  lyricIndex.value = findLyricIndex(newTime);
 });
 
 // ------------------------------ 生命周期 & 监听 ------------------------------
@@ -260,6 +302,12 @@ onMounted(() => {
     initKeyDown();
     volumeChange(volume.value);
   });
+  document.addEventListener('fullscreenchange', syncFullscreen);
+  syncFullscreen();
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('fullscreenchange', syncFullscreen);
 });
 
 watch(audioEle, (newEle) => {
@@ -515,7 +563,7 @@ function handleContextMenu(event: MouseEvent) {
   contextMenuRef.value?.open(event);
 }
 // 处理自定义右键菜单行为
-function handleContextMenuSelect(key: string) {
+async function handleContextMenuSelect(key: string) {
   switch (key) {
     case 'prev':
       prev();
@@ -529,11 +577,29 @@ function handleContextMenuSelect(key: string) {
     case 'comment':
       openComment();
       break;
+    case 'immersive':
+      await toggleImmersive();
+      break;
     case 'voice':
       isVoiceModalOpen.value = !isVoiceModalOpen.value;
       break;
   }
   contextMenuRef.value?.close();
+}
+
+async function toggleImmersive() {
+  if (isImmersive.value) {
+    isImmersive.value = false;
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    }
+    return;
+  }
+  if (!isMusicPlay()) return;
+  isImmersive.value = true;
+  if (!document.fullscreenElement) {
+    await document.documentElement.requestFullscreen();
+  }
 }
 
 function _getLyric(id: string) {
@@ -713,8 +779,8 @@ function _getChorus(id: string) {
   }
 
   /*遮罩*/
-  .mmPlayer-mask,
-  .mmPlayer-bg {
+  .bbPlayer-mask,
+  .bbPlayer-bg {
     position: absolute;
     top: 0;
     right: 0;
@@ -722,12 +788,12 @@ function _getChorus(id: string) {
     bottom: 0;
   }
 
-  .mmPlayer-mask {
+  .bbPlayer-mask {
     z-index: -1;
     background-color: @mask_color;
   }
 
-  .mmPlayer-bg {
+  .bbPlayer-bg {
     z-index: -2;
     background-repeat: no-repeat;
     background-size: cover;

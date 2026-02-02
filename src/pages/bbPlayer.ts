@@ -1,16 +1,16 @@
 import { PLAY_MODE } from '@/config';
 import { sendPlayerStatus } from '@/api/ws';
-import type { SongDetailItem, vipSong } from '@/types/dataTypes';
+import type { SongDetailItem, VipSong } from '@/types/dataTypes';
 import { getMusicUrl } from '@/api/index';
 interface BbPlayerMusicContext {
-  audioEle: ComputedRef<HTMLAudioElement | null>;
+  audioEle: Ref<HTMLAudioElement | null>;
   currentMusic: ComputedRef<SongDetailItem>;
   currentTime: Ref<number>;
   currentProgress: Ref<number>;
   musicReady: Ref<boolean>;
-  mode: ComputedRef<number>;
-  playlist: ComputedRef<SongDetailItem[]>;
-  historyList: ComputedRef<SongDetailItem[]>;
+  mode: Ref<number>;
+  playlist: Ref<SongDetailItem[]>;
+  historyList: Ref<SongDetailItem[]>;
   setPlaying: (playing: boolean) => void;
   next: (flag?: boolean) => void;
   prev: (flag?: boolean) => void;
@@ -99,8 +99,8 @@ const bbPlayerMusic = {
       } else {
         console.log('重试一次');
         retry -= 1;
-        getMusicUrl(currentMusic.value.id).then((res: vipSong) => {
-          ele.src = res.data[0].url.split('?')[0];
+        getMusicUrl(currentMusic.value.id).then((res: VipSong) => {
+          ele.src = res.data[0]?.url.split('?')[0] || '';
           ele.load();
           ele.play();
           setPlaying(true);

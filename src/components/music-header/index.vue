@@ -1,7 +1,7 @@
 <template>
   <header class="bb-header">
     <h1 class="header">
-      <a href="https://github.com/maomao1996/Vue-mmPlayer" target="_blank">
+      <a href="https://github.com/yunjiaizhake/vue3-template/tree/Graduation-project" target="_blank">
         BbPlayer 在线音乐播放器
       </a>
     </h1>

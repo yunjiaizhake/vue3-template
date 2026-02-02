@@ -15,7 +15,7 @@
 import { usePlayerStore } from '@/stores/index';
 import BbHeader from '@/components/music-header/index.vue';
 import { getPlaylistDetail } from '@/api';
-import { MMPLAYER_CONFIG } from '@/config';
+import { BBPlayer_CONFIG } from '@/config';
 import type { SongDetailItem } from '@/types/dataTypes';
 import { printLog } from './utils/util';
 
@@ -28,14 +28,21 @@ const bbPlayer = useTemplateRef<HTMLAudioElement | null>('bbPlayer');
 // ------------------------------ computed ------------------------------
 const currentMusic = computed<SongDetailItem>(() => playerStore.currentMusic);
 
+const disableFullscreenKeys = (event: KeyboardEvent) => {
+  if (event.key === 'F11') {
+    event.preventDefault();
+  }
+};
+
 // ------------------------------ 生命周期 ------------------------------
 onMounted(async () => {
+  window.addEventListener('keydown', disableFullscreenKeys);
   printLog()
   // 设置audio元素
   playerStore.setAudioEle(bbPlayer.value!);
 
   // 获取播放列表
-  const playlist = await getPlaylistDetail(MMPLAYER_CONFIG.PLAYLIST_ID);
+  const playlist = await getPlaylistDetail(BBPlayer_CONFIG.PLAYLIST_ID);
   const list = playlist.tracks.slice(0, 100);
   playerStore.setPlaylist(list as SongDetailItem[]);
 
@@ -67,6 +74,10 @@ onMounted(async () => {
     loadDOM.addEventListener('webkitAnimationEnd', animationendFunc);
     loadDOM.classList.add('removeAnimate');
   }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', disableFullscreenKeys);
 });
 </script>
 

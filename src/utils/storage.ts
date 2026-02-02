@@ -1,4 +1,4 @@
-import { MMPLAYER_CONFIG } from '@/config';
+import { BBPlayer_CONFIG } from '@/config';
 import type { SongDetailItem } from '@/types/dataTypes';
 
 const STORAGE = window.localStorage;
@@ -76,7 +76,7 @@ export function clearHistoryList() {
 const MODE_KEY = '__bbPlayer_mode__';
 // 获取播放模式
 export function getMode() {
-  return Number(storage.get(MODE_KEY, MMPLAYER_CONFIG.PLAY_MODE));
+  return Number(storage.get(MODE_KEY, BBPlayer_CONFIG.PLAY_MODE));
 }
 // 修改播放模式
 export function setMode(mode: number) {
@@ -106,7 +106,7 @@ export function setUserId(uid: string | null) {
 const VOLUME_KEY = '__bbPlayer_volume__';
 // 获取音量
 export function getVolume() {
-  const volume = storage.get(VOLUME_KEY, MMPLAYER_CONFIG.VOLUME);
+  const volume = storage.get(VOLUME_KEY, BBPlayer_CONFIG.VOLUME);
   return Number(volume);
 }
 // 修改音量
