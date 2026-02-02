@@ -76,6 +76,7 @@ import {
 } from '@/api';
 import BbDialog from '@/base/bb-dialog/index.vue';
 import { toHttps } from '@/utils/util';
+import { setCookie } from '@/utils/storage'
 import type { Creator as UserItem } from '@/types/dataTypes';
 
 // ------------------------------ store ------------------------------
@@ -163,7 +164,7 @@ const startQrLogin = async () => {
         qrStatus.value = '授权成功，正在登录…';
         clearQrTimer();
         if (status.cookie) {
-          localStorage.setItem('cookie', status.cookie);
+          setCookie(status.cookie);
         }
         const loginStatus = await getLoginStatus(status.cookie);
 
@@ -184,7 +185,6 @@ const startQrLogin = async () => {
 const out = () => {
   user.value = {};
   setUid(null);
-  localStorage.removeItem('cookie');
   logout();
   proxy!.$bbToast?.('退出成功！');
 };

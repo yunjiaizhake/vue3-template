@@ -1,7 +1,7 @@
 import { PLAY_MODE } from '@/config';
 import { sendPlayerStatus } from '@/api/ws';
 import type { SongDetailItem, VipSong } from '@/types/dataTypes';
-import { getMusicUrl } from '@/api/index';
+import { getMusicUrl_v1 } from '@/api/index';
 interface BbPlayerMusicContext {
   audioEle: Ref<HTMLAudioElement | null>;
   currentMusic: ComputedRef<SongDetailItem>;
@@ -81,7 +81,6 @@ const bbPlayerMusic = {
 
     // 音乐播放出错
     ele.onerror = () => {
-      toast?.('当前音乐是会员歌曲，正在试听前30秒~');
       if (retry === 0) {
         const lastAction = getLastSwitchAction();
         if (playlist.value.length === 1) {
@@ -97,9 +96,12 @@ const bbPlayerMusic = {
           next(true);
         }
       } else {
-        console.log('重试一次');
         retry -= 1;
-        getMusicUrl(currentMusic.value.id).then((res: VipSong) => {
+        getMusicUrl_v1(currentMusic.value.id).then((res: VipSong) => {
+          console.log("会员歌曲信息", res)
+          if (res.data[0]?.payed === 0 && res.data[0]?.peak === 0) {
+            toast?.('当前音乐是会员歌曲，正在试听前30秒~');
+          }
           ele.src = res.data[0]?.url.split('?')[0] || '';
           ele.load();
           ele.play();

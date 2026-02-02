@@ -3,7 +3,7 @@
     <!-- 头部操作栏 -->
     <div class="chat-header">
       <div class="header-left">
-        <span class="chat-title">音乐小助手 (在线版)</span>
+        <span class="chat-title">音乐小助手</span>
       </div>
       <div class="header-btns">
         <button v-if="isLoading" class="stop-btn" @click="handleStopGeneration">

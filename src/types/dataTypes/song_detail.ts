@@ -39,6 +39,8 @@ export interface SongObjectType {
 interface VipSongItem {
   id: string;
   url: string;
+  peak?: number;
+  payed?: number;
 }
 
 export interface VipSong {

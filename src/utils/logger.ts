@@ -5,6 +5,9 @@ const styles = {
     info: 'color:#4caf50;font-weight:bold;',
     warn: 'color:#ff9800;font-weight:bold;',
     error: 'color:#f44336;font-weight:bold;',
+    // success: 'color:#2e7d32;font-weight:bold;',
+    // critical:
+    //     'color:white;background:#d32f2f;font-weight:bold;padding:2px 4px;border-radius:2px;',
 }
 
 // 核心输出函数
@@ -24,6 +27,12 @@ const logger = {
 
     error: (msg: string, ...args: unknown[]) =>
         print('error', '[ERROR]', msg, args),
+
+    success: (msg: string, ...args: unknown[]) =>
+        print('info', '[SUCCESS]', msg, args),
+
+    critical: (msg: string, ...args: unknown[]) =>
+        print('error', '[CRITICAL]', msg, args),
 }
 
 declare global {

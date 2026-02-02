@@ -171,7 +171,7 @@ function updateMarkers() {
   const barWidth = bbprogress.value!.clientWidth - dotWidth;
   markerPositions.value = props.markers.map((value) => {
     const clamped = Math.max(0, Math.min(1, value));
-    return 5 + clamped * barWidth;
+    return clamped * barWidth;
   });
 }
 </script>

@@ -1,4 +1,5 @@
 import { get, post } from '@/utils/axios';
+import { getCookie, clearCookie } from '@/utils/storage';
 import { DEFAULT_LIMIT } from '@/config';
 import { formatSongs } from '@/utils/song';
 import type {
@@ -112,6 +113,17 @@ export function getMusicUrl(id: string) {
   });
 }
 
+export function getMusicUrl_v1(id: string, level: string = 'exhigh') {
+  const cookie = getCookie();
+  return get<VipSong>('/song/url/v1', {
+    params: {
+      id,
+      level,
+      cookie,
+    },
+  });
+}
+
 // 获取歌词
 export function getLyric(id: string) {
   const url = '/lyric';
@@ -201,15 +213,17 @@ export function checkLoginQr(key: string) {
 
 // 登录状态（用 cookie 换取用户信息）
 export function getLoginStatus(cookie?: string) {
+  const resolvedCookie = cookie ?? getCookie();
   return post<{ code: number; data: UserIdentityDetail }>(
     '/login/status',
-    { cookie },
+    { cookie: resolvedCookie },
     { params: { timestamp: Date.now(), ua: 'pc' } },
   );
 }
 
 // 退出登录
 export function logout() {
+  clearCookie()
   return get<{ code: number }>('/logout', {
     params: { timestamp: Date.now() },
   });

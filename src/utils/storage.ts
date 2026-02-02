@@ -3,21 +3,18 @@ import type { SongDetailItem } from '@/types/dataTypes';
 
 const STORAGE = window.localStorage;
 const storage = {
-  get(key, data = []) {
+  get<T>(key: string, data: T): T {
+    if (!STORAGE) return data;
+    const value = STORAGE.getItem(key);
+    if (value === null) return data;
+    return (Array.isArray(data) ? JSON.parse(value) : value) as T;
+  },
+  set(key: string, val: string | number | boolean | null) {
     if (STORAGE) {
-      return STORAGE.getItem(key)
-        ? Array.isArray(data)
-          ? JSON.parse(STORAGE.getItem(key))
-          : STORAGE.getItem(key)
-        : data;
+      STORAGE.setItem(key, String(val));
     }
   },
-  set(key, val) {
-    if (STORAGE) {
-      STORAGE.setItem(key, val);
-    }
-  },
-  clear(key) {
+  clear(key: string) {
     if (STORAGE) {
       STORAGE.removeItem(key);
     }
@@ -33,12 +30,12 @@ const HISTORYLIST_KEY = '__bbPlayer_historyList__';
 const HistoryListMAX = 200;
 // 获取播放历史
 export function getHistoryList(): SongDetailItem[] {
-  return storage.get(HISTORYLIST_KEY);
+  return storage.get<SongDetailItem[]>(HISTORYLIST_KEY, []);
 }
 
 // 更新播放历史，将当前播放的歌曲插入到列表最前面，如果插入后达到历史列表上限则删除最后一个
 export function setHistoryList(music: SongDetailItem) {
-  let list = storage.get(HISTORYLIST_KEY);
+  let list = storage.get<SongDetailItem[]>(HISTORYLIST_KEY, []);
   const index = list.findIndex((item: SongDetailItem) => {
     return item.id === music.id;
   });
@@ -100,6 +97,26 @@ export function setUserId(uid: string | null) {
 }
 
 /**
+ * 用户 cookie
+ * @type COOKIE_KEY：key值
+ */
+const COOKIE_KEY = '__bbPlayer_cookie__';
+// 获取 cookie
+export function getCookie() {
+  return String(storage.get(COOKIE_KEY, ''));
+}
+// 修改 cookie
+export function setCookie(cookie: string) {
+  storage.set(COOKIE_KEY, cookie);
+  return cookie;
+}
+// 清除 cookie
+export function clearCookie() {
+  storage.clear(COOKIE_KEY);
+  return '';
+}
+
+/**
  * 音量
  * @type VOLUME_KEY：key值
  */
@@ -124,12 +141,12 @@ const FAVORITELIST_KEY = '__bbPlayer_favoriteList__';
 const FavoriteListMAX = 200;
 // 获取收藏列表
 export function getFavoriteList(): SongDetailItem[] {
-  return storage.get(FAVORITELIST_KEY);
+  return storage.get<SongDetailItem[]>(FAVORITELIST_KEY, []);
 }
 
 // 添加收藏
 export function addFavorite(music: SongDetailItem) {
-  let list = storage.get(FAVORITELIST_KEY);
+  let list = storage.get<SongDetailItem[]>(FAVORITELIST_KEY, []);
   const index = list.findIndex((item: SongDetailItem) => {
     return item.id === music.id;
   });
