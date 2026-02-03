@@ -172,5 +172,32 @@ export function clearFavoriteList() {
   storage.clear(FAVORITELIST_KEY);
   return [];
 }
-
 // 收藏列表end----------------------------------------------------------------------------------
+
+// ai智能推荐
+/**
+ * 推荐历史
+ * @type    RECOMMEND_HISTORY_KEY：key值
+ */
+const RECOMMEND_HISTORY_KEY = '__bbPlayer_recommendHistory__';
+// 获取推荐历史
+export function getRecommendHistory(): string[] {
+  return storage.get<string[]>(RECOMMEND_HISTORY_KEY, []);
+}
+// 添加推荐历史
+export function addRecommendHistory(songName: string) {
+  let list = storage.get<string[]>(RECOMMEND_HISTORY_KEY, []);
+  const index = list.findIndex((item) => item === songName);
+  if (index > -1) {
+    list.splice(index, 1);
+  }
+  list.unshift(songName);
+  storage.set(RECOMMEND_HISTORY_KEY, JSON.stringify(list));
+  return list;
+}
+// 清空推荐历史
+export function clearRecommendHistory() {
+  storage.clear(RECOMMEND_HISTORY_KEY);
+  return [];
+}
+

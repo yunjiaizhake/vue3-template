@@ -76,7 +76,7 @@ import {
 } from '@/api';
 import BbDialog from '@/base/bb-dialog/index.vue';
 import { toHttps } from '@/utils/util';
-import { setCookie } from '@/utils/storage'
+import { setCookie,clearRecommendHistory } from '@/utils/storage'
 import type { Creator as UserItem } from '@/types/dataTypes';
 
 // ------------------------------ store ------------------------------
@@ -186,6 +186,7 @@ const out = () => {
   user.value = {};
   setUid(null);
   logout();
+  clearRecommendHistory()
   proxy!.$bbToast?.('退出成功！');
 };
 

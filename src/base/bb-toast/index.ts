@@ -1,6 +1,12 @@
 import type { App } from 'vue';
 import TempToast from './index.vue';
 
+/*
+this.$bbToast('保存成功')
+this.$bbToast('失败了', 'top')  默认展示时间 1.5s
+this.$bbToast('永久提示', 'center', 0) 0 代表永远不关闭，只要再次吊起替换他
+*/
+
 interface ToastInstance {
   // InstanceType 给一个 构造函数类型（class 或 typeof MyComponent），返回它 实例的类型
   vm: ComponentPublicInstance<InstanceType<typeof TempToast>>; // 组件实例类型
@@ -37,6 +43,8 @@ const bbToast = {
     app.config.globalProperties.$bbToast = (
       message: string,
       position?: 'top' | 'center' | 'bottom',
+      // 加上duration属性，当其为0时，会让toast永远不消失，直到下次调用将其顶替
+      duration?: number,
     ) => {
       const { vm } = initInstance();
 
@@ -49,14 +57,16 @@ const bbToast = {
       // 更新内容和显示
       vm.message = message ?? opt.message;
       vm.position = position ?? opt.position;
-      vm.duration = opt.duration;
+      vm.duration = typeof duration === 'number' ? duration : opt.duration;
       vm.visible = true;
 
       // 自动隐藏
-      timer = setTimeout(() => {
-        vm.visible = false;
-        timer = null;
-      }, opt.duration);
+      if (vm.duration > 0) {
+        timer = setTimeout(() => {
+          vm.visible = false;
+          timer = null;
+        }, vm.duration);
+      }
     };
   },
 };

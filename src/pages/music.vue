@@ -133,7 +133,7 @@
 defineOptions({ name: 'music' });
 
 import { usePlayerStore } from '@/stores/index.ts';
-import { getLyric, getChorus } from '@/api';
+import { getLyric, getChorus, getAiChat, getFavoriteListByUid } from '@/api';
 import bbPlayerMusic from './bbPlayer';
 import {
   randomSortArray,
@@ -142,7 +142,14 @@ import {
   silencePromise,
 } from '@/utils/util';
 import { PLAY_MODE, BBPlayer_CONFIG } from '@/config';
-import { getVolume, setVolume } from '@/utils/storage';
+import {
+  getVolume,
+  setVolume,
+  getFavoriteList,
+  getUserId,
+  getRecommendHistory,
+  addRecommendHistory,
+} from '@/utils/storage';
 import { searchAndPlay } from '@/utils/aiplay';
 
 import BbProgress from '@/base/bb-progress/index.vue';
@@ -170,8 +177,9 @@ const { proxy } = getCurrentInstance()!; // 拿到当前实例
 const volumeRef = ref<ChildExpose | null>(null);
 const contextMenuRef =
   useTemplateRef<InstanceType<typeof MusicContextMenu>>('contextMenuRef');
-const isVoiceModalOpen = ref(false);
-const isImmersive = ref(false);
+const isVoiceModalOpen = ref(false); // 打开语音识别
+const isImmersive = ref(false); // 打开沉浸体验
+const isAiRecommendActive = ref(false); // 是否开启为你推荐
 const syncFullscreen = () => {
   if (!document.fullscreenElement && isImmersive.value) {
     isImmersive.value = false;
@@ -232,6 +240,11 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
     { key: 'prev', label: '上一曲', disabled: !hasMusic },
     { key: 'next', label: '下一曲', disabled: !hasMusic },
     { key: 'comment', label: '打开评论', disabled: !hasMusic },
+    {
+      key: 'ai_recommend',
+      label: '为你推荐',
+      disabled: false,
+    },
     {
       key: 'immersive',
       label: isImmersive.value ? '回到主页面' : '打开沉浸式体验',
@@ -329,13 +342,21 @@ watch(
     }
   },
 );
+// ws播放音乐
 watch(
   () => aiBus.play_song,
-  (event) => {
+  async (event) => {
     if (!event) return;
-    searchAndPlay(event.payload as string);
+    const song = await searchAndPlay(event.payload as string);
+    if (isAiRecommendActive.value && song) {
+      const record = `${song.singer}：${song.name}`;
+      addRecommendHistory(record);
+      proxy?.$bbToast?.(`已经为您推荐歌曲：${song.name}`,'center',3000);
+      isAiRecommendActive.value = false;
+    }
   },
 );
+// ws控制音量
 watch(
   () => aiBus.volume_control,
   (event) => {
@@ -577,6 +598,9 @@ async function handleContextMenuSelect(key: string) {
     case 'comment':
       openComment();
       break;
+    case 'ai_recommend':
+      await recommendFromFavorites();
+      break;
     case 'immersive':
       await toggleImmersive();
       break;
@@ -587,6 +611,7 @@ async function handleContextMenuSelect(key: string) {
   contextMenuRef.value?.close();
 }
 
+// 右键菜单 打开/关闭 沉浸体验
 async function toggleImmersive() {
   if (isImmersive.value) {
     isImmersive.value = false;
@@ -599,6 +624,48 @@ async function toggleImmersive() {
   isImmersive.value = true;
   if (!document.fullscreenElement) {
     await document.documentElement.requestFullscreen();
+  }
+}
+// 右键为你推荐歌曲
+async function recommendFromFavorites() {
+  const uid = getUserId();
+  let favorites: SongDetailItem[] = [];
+  if (uid) {
+    try {
+      const res = await getFavoriteListByUid(uid);
+      favorites = res.data || [];
+    } catch (error) {
+      proxy?.$bbToast?.('获取收藏列表失败，请稍后再试');
+      return;
+    }
+  } else {
+    favorites = getFavoriteList();
+  }
+  if (!favorites.length) {
+    proxy?.$bbToast?.('收藏列表为空，可以收藏几首喜欢的歌再来找我推荐哦');
+    return;
+  }
+  isAiRecommendActive.value = true;
+  proxy?.$bbToast?.('正在根据您的收藏为你推荐...', 'center', 0);
+  const payload = favorites.map((item) => ({
+    name: item.name,
+    singer: item.singer,
+    album: item.album,
+  }));
+  const history = getRecommendHistory();
+  const historyText = history.length ? `\n已推荐列表（不要重复）：${history.join('、')}` : '';
+  const prompt = `请根据以下收藏歌曲列表分析风格，推荐一首相似的歌曲。你必须调用 play_song 工具\n收藏列表：${JSON.stringify(
+    payload,
+  )}${historyText}`;
+  try {
+    await getAiChat(prompt);
+    setTimeout(()=>{
+      if(isAiRecommendActive.value){
+        proxy?.$bbToast?.('网络开小差了，请稍后再试');
+      }
+    },10000)
+  } catch (error) {
+    proxy?.$bbToast?.('推荐请求失败，请稍后再试');
   }
 }
 

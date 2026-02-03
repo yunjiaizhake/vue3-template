@@ -160,7 +160,7 @@ export function getComment(
 
 // 进行和大模型的对话
 export function getAiChat(prompt: string) {
-  return post('/gpt/chat/stream', {
+  return post('/gpt/chat', {
     prompt,
   });
 }

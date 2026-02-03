@@ -3,6 +3,10 @@ import 'vue';
 
 declare module 'vue' {
   interface ComponentCustomProperties {
-    $bbToast: (message: string, position?: 'top' | 'center' | 'bottom') => void;
+    $bbToast: (
+      message: string,
+      position?: 'top' | 'center' | 'bottom',
+      duration?: number,
+    ) => void;
   }
 }
