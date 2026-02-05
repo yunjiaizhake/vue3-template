@@ -24,10 +24,11 @@
             <div class="list-menu">
               <bb-icon
                 class="hover list-menu-icon-fav"
-                :class="{ 'is-favorite': isFavorite(item.id) }"
-                :type="isFavorite(item.id) ? 'aixin1' : 'aixin'"
+                :style="getFavStyle(item.id)"
+                :type="getFavIconType(item.id)"
                 :size="40"
-                @click.stop.prevent="toggleFavorite(item)"
+                @mousedown.left.stop.prevent="onFavPressStart(item)"
+                @mouseup.left.stop.prevent="onFavPressEnd(item)"
                 @dblclick.stop.prevent
               />
               <bb-icon
@@ -69,10 +70,13 @@ import BbNoResult from '@/base/bb-no-result/index.vue';
 import { format } from '@/utils/util';
 import type { SongObjectType } from '@/types/dataTypes';
 
-const LIST_TYPE_ALBUM = 'album';
-const LIST_TYPE_DURATION = 'duration';
-const LIST_TYPE_PULLUP = 'pullup';
-const THRESHOLD = 100;
+const LIST_TYPE_ALBUM = 'album'; // 列表尾列显示专辑信息
+const LIST_TYPE_DURATION = 'duration'; // 列表尾列显示时长并带删除按钮
+const LIST_TYPE_PULLUP = 'pullup'; // 支持上拉加载更多（触发 pullUp 事件）
+const THRESHOLD = 100; // 上拉触发阈值
+const FAV_HOLD_MS = 2000; // 长按时长（ms）
+const FAV_TICK_MS = 100; // 长按进度刷新间隔
+const FAV_CLICK_MS = 200; // 长按点击时间,长按的时间低于这个时间就当作点击处理
 
 // ------------------------------ props ------------------------------
 const props = defineProps({
@@ -87,19 +91,21 @@ const props = defineProps({
 const emit = defineEmits(['select', 'del', 'pullUp']);
 
 // ------------------------------ store ------------------------------
-const store = usePlayerStore();
-const favoriteStore = useFavoriteStore();
-const playing = computed(() => store.playing);
-const currentMusic = computed(() => store.currentMusic);
-const favoriteList = computed(() => favoriteStore.favoriteList);
+const store = usePlayerStore(); // 播放器状态
+const favoriteStore = useFavoriteStore(); // 收藏状态
+const playing = computed(() => store.playing); // 是否播放中
+const currentMusic = computed(() => store.currentMusic); // 当前播放歌曲
+const favoriteList = computed(() => favoriteStore.favoriteList); // 收藏列表
 
 // ------------------------------ state ------------------------------
-const listContent = useTemplateRef<HTMLDivElement>('listContent');
-const lockUp = ref(true);
-const scrollTop = ref(0);
+const listContent = useTemplateRef<HTMLDivElement>('listContent'); // 列表容器
+const lockUp = ref(true); // 上拉锁
+const scrollTop = ref(0); // 记住滚动位置
+const favHoldTimer = ref<number | null>(null); // 长按计时器
+const favHoldStart = ref(0); // 长按开始时间
 
 // ------------------------------ computed ------------------------------
-const isDuration = computed(() => props.listType === LIST_TYPE_DURATION);
+const isDuration = computed(() => props.listType === LIST_TYPE_DURATION); // 是否显示时长列
 
 // ------------------------------ watch ------------------------------
 watch(
@@ -124,6 +130,7 @@ onActivated(() => {
 });
 
 // ------------------------------ methods ------------------------------
+// 处理列表滚动和上拉触发
 function listScroll(e: Event) {
   const el = e.target as HTMLElement;
   scrollTop.value = el.scrollTop;
@@ -136,10 +143,12 @@ function listScroll(e: Event) {
   }
 }
 
+// 列表回到顶部
 function scrollTo() {
   listContent.value!.scrollTop = 0;
 }
 
+// 选择/播放歌曲
 function selectItem(item: SongObjectType, index: number, e: Event) {
   const el = e.target as HTMLElement;
   if (e && /list-menu-icon-del/.test(el.className)) return;
@@ -152,20 +161,88 @@ function selectItem(item: SongObjectType, index: number, e: Event) {
   emit('select', item, index);
 }
 
+// 播放按钮图标
 function getPlayIconType({ id }: SongObjectType) {
   return playing.value && currentMusic.value.id === id
     ? 'pause-mini'
     : 'play-mini';
 }
 
+// 是否已收藏
 function isFavorite(id: string) {
   return favoriteList.value.some((item) => item.id === id);
 }
 
-function toggleFavorite(item: SongObjectType) {
-  favoriteStore.toggleFavorite(item);
+// 读取已收藏喜爱度
+function getFavoritePercent(id: string) {
+  const item = favoriteList.value.find((item) => item.id === id);
+  return item?.lovePercent ?? 100;
 }
 
+// 获取当前进度条显示值
+function getFavHoldPercent(id: string) {
+  const percent = isFavorite(id) ? getFavoritePercent(id) : 0;
+  return Math.max(0, Math.min(100, percent));
+}
+
+// 收藏图标渐变样式
+function getFavStyle(id: string) {
+  return { '--fav-fill': `${getFavHoldPercent(id)}%` };
+}
+
+// 收藏图标类型
+function getFavIconType(id: string) {
+  return getFavHoldPercent(id) > 0 ? 'aixin1' : 'aixin';
+}
+
+// 清理长按状态
+function clearFavHold() {
+  if (favHoldTimer.value) {
+    clearInterval(favHoldTimer.value);
+    favHoldTimer.value = null;
+  }
+  favHoldStart.value = 0;
+}
+
+// 收藏按钮按下（仅未收藏时生效）
+function onFavPressStart(item: SongObjectType) {
+  const id = item.id;
+  const favPercent = getFavHoldPercent(id);
+  clearFavHold();
+  const startTime = performance.now();
+  favHoldStart.value = startTime;
+  favHoldTimer.value = window.setInterval(() => {
+    const elapsed = performance.now() - startTime;
+    const percent = Math.min(100, (elapsed / FAV_HOLD_MS) * 100 + favPercent);
+    toggleFavorite({ ...item, lovePercent: percent },true);
+  }, FAV_TICK_MS);
+}
+
+// 收藏按钮抬起（未收藏时才计算进度）
+function onFavPressEnd(item: SongObjectType) {
+  let elapsed = favHoldStart.value ? performance.now() - favHoldStart.value : 0;
+  if (elapsed < FAV_CLICK_MS) {
+     onFavClick(item);
+  }
+  clearFavHold();
+}
+
+// 点击收藏按钮（已收藏时取消）
+function onFavClick(item: SongObjectType) {
+  clearFavHold();
+  if (isFavorite(item.id)) {
+    toggleFavorite(item);
+    return;
+  }
+  toggleFavorite({ ...item, lovePercent: 10 });
+}
+
+// 切换收藏状态
+function toggleFavorite(item: SongObjectType, update = false) {
+  favoriteStore.toggleFavorite(item, update);
+}
+
+// 删除列表项
 function deleteItem(index: number) {
   emit('del', index);
 }
@@ -298,9 +375,18 @@ defineExpose({
 
   .list-menu-icon-fav {
     margin-right: 12px;
-  }
-  .list-menu-icon-fav.is-favorite {
-    color: #ff4d4f;
+    --fav-fill: 0%;
+    color: @text_color;
+    background-image: linear-gradient(
+      to top,
+      #ff4d4f 0%,
+      #ff4d4f var(--fav-fill),
+      currentColor var(--fav-fill),
+      currentColor 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .list-artist,

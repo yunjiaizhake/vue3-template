@@ -61,19 +61,24 @@ export const useFavoriteStore = defineStore('favorite', {
     },
 
     // 切换收藏状态
-    async toggleFavorite(music: SongDetailItem) {
+    async toggleFavorite(music: SongDetailItem, update = false) {
       const list = [...this.favoriteList];
       const index = findIndex(list, music);
+      // ✅ 已存在
       if (index > -1) {
-        list.splice(index, 1);
+        if (update) {
+          // 更新已有项
+          list[index] = { ...list[index], ...music };
+        } else {
+          // 删除已有项
+          list.splice(index, 1);
+        }
         await this.persistFavoriteList(list);
-      } else {
-        const nextList =
-          list.findIndex((item) => item.id === music.id) > -1
-            ? list
-            : [music, ...list].slice(0, 200);
-        await this.persistFavoriteList(nextList);
+        return;
       }
+      // ✅ 不存在 → 添加
+      const nextList = [music, ...list].slice(0, 200);
+      await this.persistFavoriteList(nextList);
     },
 
     // 删除收藏

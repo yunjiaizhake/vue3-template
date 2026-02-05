@@ -34,6 +34,7 @@ export interface SongObjectType {
   image: string;
   duration: number;
   url: string;
+  lovePercent?: number;
 }
 
 interface VipSongItem {
