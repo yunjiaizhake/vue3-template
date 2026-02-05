@@ -114,12 +114,10 @@ export function getMusicUrl(id: string) {
 }
 
 export function getMusicUrl_v1(id: string, level: string = 'exhigh') {
-  const cookie = getCookie();
   return get<VipSong>('/song/url/v1', {
     params: {
       id,
       level,
-      cookie,
     },
   });
 }

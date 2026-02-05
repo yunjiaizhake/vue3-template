@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
+import { getCookie } from '@/utils/storage';
 
 const service = axios.create({
   baseURL: import.meta.env.VITE_BASE_API_URL,
@@ -20,9 +21,25 @@ service.interceptors.response.use(
 
 export type RequestConfig<T = unknown> = AxiosRequestConfig<T>;
 
+function withCookie(config?: RequestConfig) {
+  const cookie = getCookie();
+  if (!cookie) return config;
+
+  const params =
+    config?.params && typeof config.params === 'object'
+      ? { ...(config.params as Record<string, unknown>) }
+      : {};
+
+  if (!('cookie' in params)) {
+    params.cookie = cookie;
+  }
+
+  return { ...config, params };
+}
+
 // 通用 GET
 export function get<T = unknown>(url: string, config?: RequestConfig) {
-  return service.get<T>(url, config) as Promise<T>;
+  return service.get<T>(url, withCookie(config)) as Promise<T>;
 }
 
 // 通用 POST
