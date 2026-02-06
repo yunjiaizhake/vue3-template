@@ -1,17 +1,19 @@
-import type { LyricLine } from '@/types/dataTypes';
+import type { LyricLine, SongDetailItem } from '@/types/dataTypes';
 
 // 随机排序数组/洗牌函数 https://github.com/lodash/lodash/blob/master/shuffle.js
-function copyArray(source: any[], array: any[] | undefined = undefined) {
+function copyArray(source: unknown[], array: unknown[] | undefined = undefined) {
   let index = -1;
   const length = source.length;
-  array || (array = new Array(length));
+  if (!array) {
+    array = new Array(length);
+  }
   while (++index < length) {
     array[index] = source[index];
   }
   return array;
 }
 
-export const randomSortArray = function shuffle(array) {
+export const randomSortArray = function shuffle(array: SongDetailItem[]) {
   const length = array == null ? 0 : array.length;
   if (!length) {
     return [];
@@ -28,18 +30,6 @@ export const randomSortArray = function shuffle(array) {
   return result;
 };
 
-// 防抖函数
-export function debounce(func, delay) {
-  let timer;
-  return function (...args) {
-    if (timer) {
-      clearTimeout(timer);
-    }
-    timer = setTimeout(() => {
-      func.apply(this, args);
-    }, delay);
-  };
-}
 
 // 补0函数
 export function addZero(s: number) {
@@ -72,37 +62,29 @@ export function parseLyric(lrc: string): LyricLine[] {
 }
 
 // 时间格式化
-export function format(value) {
+export function format(value: number) {
   let minute = Math.floor(value / 60);
   let second = Math.floor(value % 60);
   return `${addZero(minute)}:${addZero(second)}`;
 }
 
-export function isPromise(v) {
+export function isPromise(v: Promise<unknown>) {
   return v !== undefined && v !== null && typeof v.then === 'function';
 }
 
-export function silencePromise(value) {
+export function silencePromise(value: Promise<unknown>) {
   if (isPromise(value)) {
-    value.then(null, () => {});
+    value.then(null, () => { });
   }
-}
-
-// 判断 string 类型
-export function isString(v) {
-  return typeof v === 'string';
 }
 
 // http 链接转化成 https
-export function toHttps(url) {
-  if (!isString(url)) {
-    return url;
-  }
+export function toHttps(url: string) {
   return url.replace('http://', 'https://');
 }
 
 // 格式化评论时间
-export function formatTime(time) {
+export function formatTime(time: number) {
   let formatTime;
   const date = new Date(time);
   const dateObj = {

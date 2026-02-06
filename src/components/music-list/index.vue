@@ -13,7 +13,7 @@
           v-for="(item, index) in list"
           :key="item.id"
           class="list-item"
-          :class="{ on: playing && currentMusic.id === item.id }"
+          :class="{ on: playing && currentMusic.id == item.id }"
           @dblclick="selectItem(item, index, $event)"
         >
           <span class="list-num">{{ index + 1 }}</span>
@@ -103,9 +103,11 @@ const lockUp = ref(true); // 上拉锁
 const scrollTop = ref(0); // 记住滚动位置
 const favHoldTimer = ref<number | null>(null); // 长按计时器
 const favHoldStart = ref(0); // 长按开始时间
+const favHoldItemId = ref<string | null>(null); // 当前长按的歌曲 id
+const favHoldPercent = ref(0); // 长按进度
 
 // ------------------------------ computed ------------------------------
-const isDuration = computed(() => props.listType === LIST_TYPE_DURATION); // 是否显示时长列
+const isDuration = computed(() => props.listType == LIST_TYPE_DURATION); // 是否显示时长列
 
 // ------------------------------ watch ------------------------------
 watch(
@@ -153,7 +155,7 @@ function selectItem(item: SongObjectType, index: number, e: Event) {
   const el = e.target as HTMLElement;
   if (e && /list-menu-icon-del/.test(el.className)) return;
 
-  if (currentMusic.value.id && item.id === currentMusic.value.id) {
+  if (currentMusic.value.id && item.id == currentMusic.value.id) {
     store.playing = !playing.value;
     return;
   }
@@ -163,25 +165,30 @@ function selectItem(item: SongObjectType, index: number, e: Event) {
 
 // 播放按钮图标
 function getPlayIconType({ id }: SongObjectType) {
-  return playing.value && currentMusic.value.id === id
+  return playing.value && currentMusic.value.id == id
     ? 'pause-mini'
     : 'play-mini';
 }
 
 // 是否已收藏
 function isFavorite(id: string) {
-  return favoriteList.value.some((item) => item.id === id);
+  return favoriteList.value.some((item) => item.id == id);
 }
 
 // 读取已收藏喜爱度
 function getFavoritePercent(id: string) {
-  const item = favoriteList.value.find((item) => item.id === id);
+  const item = favoriteList.value.find((item) => item.id == id);
   return item?.lovePercent ?? 100;
 }
 
 // 获取当前进度条显示值
 function getFavHoldPercent(id: string) {
-  const percent = isFavorite(id) ? getFavoritePercent(id) : 0;
+  const percent =
+    favHoldItemId.value == id
+      ? favHoldPercent.value
+      : isFavorite(id)
+        ? getFavoritePercent(id)
+        : 0;
   return Math.max(0, Math.min(100, percent));
 }
 
@@ -202,32 +209,40 @@ function clearFavHold() {
     favHoldTimer.value = null;
   }
   favHoldStart.value = 0;
+  favHoldItemId.value = null;
+  favHoldPercent.value = 0;
 }
 
-// 收藏按钮按下（仅未收藏时生效）
+// 收藏按钮按下（已收藏也支持长按增长）
 function onFavPressStart(item: SongObjectType) {
   const id = item.id;
   const favPercent = getFavHoldPercent(id);
   clearFavHold();
   const startTime = performance.now();
+  favHoldItemId.value = id;
   favHoldStart.value = startTime;
+  favHoldPercent.value = favPercent;
   favHoldTimer.value = window.setInterval(() => {
     const elapsed = performance.now() - startTime;
     const percent = Math.min(100, (elapsed / FAV_HOLD_MS) * 100 + favPercent);
-    toggleFavorite({ ...item, lovePercent: percent },true);
+    favHoldPercent.value = percent;
   }, FAV_TICK_MS);
 }
 
 // 收藏按钮抬起（未收藏时才计算进度）
-function onFavPressEnd(item: SongObjectType) {
+async function onFavPressEnd(item: SongObjectType) {
   let elapsed = favHoldStart.value ? performance.now() - favHoldStart.value : 0;
   if (elapsed < FAV_CLICK_MS) {
-     onFavClick(item);
+    onFavClick(item);
+    clearFavHold();
+    return;
   }
+  const percent = getFavHoldPercent(item.id);
+  await toggleFavorite({ ...item, lovePercent: percent }, true);
   clearFavHold();
 }
 
-// 点击收藏按钮（已收藏时取消）
+// 点击收藏按钮（改为在mouseup时候决定调用与否）
 function onFavClick(item: SongObjectType) {
   clearFavHold();
   if (isFavorite(item.id)) {
@@ -238,8 +253,8 @@ function onFavClick(item: SongObjectType) {
 }
 
 // 切换收藏状态
-function toggleFavorite(item: SongObjectType, update = false) {
-  favoriteStore.toggleFavorite(item, update);
+async function toggleFavorite(item: SongObjectType, update = false) {
+  await favoriteStore.toggleFavorite(item, update);
 }
 
 // 删除列表项

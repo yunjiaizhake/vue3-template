@@ -523,7 +523,7 @@ function modeChange() {
       list = orderList.value;
       break;
     case PLAY_MODE.RANDOM:
-      list = randomSortArray(orderList.value);
+      list = randomSortArray(orderList.value) as SongDetailItem[];
       break;
   }
   resetCurrentIndex(list);

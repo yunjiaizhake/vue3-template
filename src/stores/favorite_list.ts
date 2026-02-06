@@ -8,7 +8,7 @@ import { getFavoriteListByUid, saveFavoriteListByUid } from '@/api';
 import type { SongDetailItem } from '@/types/dataTypes';
 
 function findIndex(list: SongDetailItem[], music: SongDetailItem) {
-  return list.findIndex((item) => item.id === music.id);
+  return list.findIndex((item) => item.id == music.id);
 }
 
 export const useFavoriteStore = defineStore('favorite', {
