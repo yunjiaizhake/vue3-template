@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import { usePlayerStore } from '@/stores/index.ts';
 import { useFavoriteStore } from '@/stores/favorite_list';
+import { addLoveHundredUser, removeLoveHundredUser } from '@/api';
 import BbNoResult from '@/base/bb-no-result/index.vue';
 import { format } from '@/utils/util';
 import type { SongObjectType } from '@/types/dataTypes';
@@ -104,7 +105,7 @@ const scrollTop = ref(0); // 记住滚动位置
 const favHoldTimer = ref<number | null>(null); // 长按计时器
 const favHoldStart = ref(0); // 长按开始时间
 const favHoldItemId = ref<string | null>(null); // 当前长按的歌曲 id
-const favHoldPercent = ref(0); // 长按进度
+const favHoldPercent = ref(0); // 长按进度，也可以说是当前操作歌曲的喜爱进度
 
 // ------------------------------ computed ------------------------------
 const isDuration = computed(() => props.listType == LIST_TYPE_DURATION); // 是否显示时长列
@@ -242,6 +243,25 @@ async function onFavPressEnd(item: SongObjectType) {
   clearFavHold();
 }
 
+function getLoveHundredUserId() {
+  return store.uid && store.uid !== 'null' ? store.uid : '00000000';
+}
+
+// 喜爱度达到100或从100跌出去时触发
+async function syncLoveHundredUsers(
+  musicId: string,
+  name: string,
+  singer: string,
+  lovePercent: number,
+) {
+  const userId = getLoveHundredUserId();
+  if (lovePercent >= 100) {
+    await addLoveHundredUser(musicId, userId, name, singer);
+    return;
+  }
+  await removeLoveHundredUser(musicId, userId, name, singer);
+}
+
 // 点击收藏按钮（改为在mouseup时候决定调用与否）
 function onFavClick(item: SongObjectType) {
   clearFavHold();
@@ -255,6 +275,7 @@ function onFavClick(item: SongObjectType) {
 // 切换收藏状态
 async function toggleFavorite(item: SongObjectType, update = false) {
   await favoriteStore.toggleFavorite(item, update);
+  await syncLoveHundredUsers(item.id, item.name, item.singer, item.lovePercent ?? 0);
 }
 
 // 删除列表项

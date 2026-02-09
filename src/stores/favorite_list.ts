@@ -25,9 +25,7 @@ export const useFavoriteStore = defineStore('favorite', {
     // 更新 uid 并初始化
     setUid(uid: string | null) {
       this.uid = uid;
-      if (this.hasValidUid(this.uid)) {
-        this.initFavoriteList();
-      }
+      this.initFavoriteList();
     },
 
     // 初始化收藏列表（有 uid 用数据库，没有用本地）

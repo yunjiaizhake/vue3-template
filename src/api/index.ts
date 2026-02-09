@@ -20,6 +20,7 @@ import type {
   UserLoginQRcodeStatus,
   ChorusResponse,
   VipSong,
+  LoveHundredUsers
 } from '@/types/dataTypes';
 
 // 排行榜列表
@@ -176,6 +177,49 @@ export function saveFavoriteListByUid(uid: string, list: SongDetailItem[]) {
     uid,
     list,
   });
+}
+
+// 获取满喜欢度用户列表（数据库）
+export function getLoveHundredUsersByMusicId(musicId: string) {
+  return get<{ code: number; data: LoveHundredUsers }>('/love/hundred/users', {
+    params: { musicId },
+  });
+}
+
+// 新增满喜欢度用户（数据库）
+export function addLoveHundredUser(
+  musicId: string,
+  userId: string,
+  name: string,
+  singer: string,
+) {
+  return post<{ code: number; data: LoveHundredUsers }>(
+    '/love/hundred/users/add',
+    {
+      musicId,
+      userId,
+      name,
+      singer,
+    },
+  );
+}
+
+// 删除满喜欢度用户（数据库）
+export function removeLoveHundredUser(
+  musicId: string,
+  userId: string,
+  name: string,
+  singer: string,
+) {
+  return post<{ code: number; data: LoveHundredUsers }>(
+    '/love/hundred/users/remove',
+    {
+      musicId,
+      userId,
+      name,
+      singer,
+    },
+  );
 }
 
 // 获取二维码 key

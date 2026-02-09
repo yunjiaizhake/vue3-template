@@ -25,7 +25,7 @@ export interface Song extends Track {
   artists?: Artist[];
 }
 
-// new Song 时构造函数中的值类型
+// new Song 时构造函数中的值类型,同时也是存入数据库喜欢歌曲的字段类型
 export interface SongObjectType {
   id: string;
   name: string;
@@ -35,6 +35,13 @@ export interface SongObjectType {
   duration: number;
   url: string;
   lovePercent?: number;
+}
+
+export interface LoveHundredUsers {
+  musicId: string;
+  name: string;
+  singer: string;
+  userIds: string[];
 }
 
 interface VipSongItem {
