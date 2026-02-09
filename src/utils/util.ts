@@ -80,7 +80,7 @@ export function silencePromise(value: Promise<unknown>) {
 
 // http 链接转化成 https
 export function toHttps(url: string) {
-  return url.replace('http://', 'https://');
+  return url && url.replace('http://', 'https://');
 }
 
 // 格式化评论时间

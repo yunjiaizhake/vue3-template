@@ -222,6 +222,17 @@ export function removeLoveHundredUser(
   );
 }
 
+// 满喜爱度推荐（数据库）
+export function recommendLoveHundredSong(
+  userId: string,
+  history: string[] = [],
+) {
+  return post<{ code: number; data: { songName: string; index: number } | null; message?: string }>(
+    '/love/hundred/recommend',
+    { userId, history },
+  );
+}
+
 // 获取二维码 key
 export function getLoginQrKey() {
   return get<UserLoginKey>('/login/qr/key', {
