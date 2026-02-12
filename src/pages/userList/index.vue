@@ -85,10 +85,9 @@ onActivated(() => {
 // 获取我的歌单详情
 function _getUserPlaylist(uid: string) {
   getUserPlaylist(uid).then((res) => {
-    if (res.playlist.length === 0) {
-      return;
+    if (res.code == 200) {
+      list.value = res.playlist;
     }
-    list.value = res.playlist.slice(1);
     _hideLoad();
   });
 }
