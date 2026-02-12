@@ -119,6 +119,7 @@
         :lyric="lyric"
         :nolyric="nolyric"
         :lyric-index="lyricIndex"
+        :playing="playing"
         @contextmenu="handleContextMenu"
       />
     </teleport>

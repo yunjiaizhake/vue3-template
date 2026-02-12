@@ -2,7 +2,7 @@
   <div id="app">
     <bb-header />
     <router-view />
-    <audio ref="bbPlayer"></audio>
+    <audio ref="bbPlayer" crossorigin="anonymous"></audio>
 
     <!-- 显示当前播放歌曲 -->
     <div v-if="currentMusic.id">
