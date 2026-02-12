@@ -134,7 +134,7 @@
 defineOptions({ name: 'music' });
 
 import { usePlayerStore } from '@/stores/index.ts';
-import { getLyric, getChorus } from '@/api';
+import { getLyric, getChorus, getMusicUrl_v1 } from '@/api';
 import bbPlayerMusic from './bbPlayer';
 import {
   randomSortArray,
@@ -254,12 +254,18 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
 });
 
 // ------------------------------ watch ------------------------------
-watch(currentMusic, (newMusic, oldMusic) => {
+watch(currentMusic, async (newMusic, oldMusic) => {
   if (!newMusic.id) {
     lyric.value = [];
     return;
   }
   if (newMusic.id === oldMusic.id) return;
+
+  if (!newMusic.url) {
+    console.log('newMusic',toRaw(newMusic)) // toRaw 返回那个被 Proxy 包裹的原始对象
+    const res = await getMusicUrl_v1(newMusic.id);
+    newMusic.url = res.data?.[0]?.url || '';
+  }
 
   audioEle.value!.src = newMusic.url;
   lyricIndex.value = currentTime.value = currentProgress.value = 0;

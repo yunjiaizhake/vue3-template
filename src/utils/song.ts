@@ -36,9 +36,10 @@ export function createSong(music: SongType): SongObjectType {
     name: music.name,
     singer: filterSinger(music.ar || music.artists),
     album: album.name,
-    image: toHttps(album.picUrl) || null,
+    image: toHttps(album.picUrl),
     duration: duration / 1000,
-    url: `https://music.163.com/song/media/outer/url?id=${music.id}.mp3`,
+    // url: `https://music.163.com/song/media/outer/url?id=${music.id}.mp3`, // 外链播放会导致 cors 报错，暂时禁用
+    url:''
   });
 }
 
