@@ -54,3 +54,9 @@ interface VipSongItem {
 export interface VipSong {
   data: VipSongItem[];
 }
+
+// 私人FM
+export interface FMList {
+  name: string;
+  id: string
+}

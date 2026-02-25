@@ -107,7 +107,7 @@ defineExpose({
 }
 
 .menu-panel {
-  min-width: 140px;
+  width: max-content;
   padding: 6px 0;
   border-radius: 6px;
   background: rgba(30, 30, 30, 0.55);
@@ -120,8 +120,10 @@ defineExpose({
 }
 
 .menu-item {
+  display: block;
   width: 100%;
   padding: 8px 14px;
+  white-space: nowrap;
   color: #fff;
   text-align: left;
   background: transparent;

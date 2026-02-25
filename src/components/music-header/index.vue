@@ -1,8 +1,15 @@
 <template>
   <header class="bb-header">
     <h1 class="header">
-      <a href="https://github.com/yunjiaizhake/vue3-template/tree/Graduation-project" target="_blank">
+      <a
+        class="title-link"
+        href="https://github.com/yunjiaizhake/vue3-template/tree/Graduation-project"
+        target="_blank"
+      >
         BbPlayer 在线音乐播放器
+      </a>
+      <a class="source-link" href="https://music.163.com/">
+        音乐资源来源于--网易云音乐
       </a>
     </h1>
 
@@ -250,27 +257,30 @@ onBeforeUnmount(() => {
   }
 
   .header {
-    .flex-center;
-    line-height: 60px;
+    .flex-center(column);
     color: @text_color_active;
     font-size: @font_size_large;
+    margin-top: 20px;
+    gap: 5px;
 
     @media (max-width: 768px) {
       padding-left: 15px;
       justify-content: flex-start;
+      align-items: flex-start;
     }
 
     @media (max-width: 414px) {
       font-size: @font_size_medium;
     }
 
-    .visitor {
-      margin-left: 6px;
-      height: 20px;
+    .title-link {
+      display: block;
+    }
 
-      @media (max-width: 414px) {
-        display: none;
-      }
+    .source-link {
+      display: block;
+      font-size: @font_size_small;
+      opacity: 0.85;
     }
   }
 
@@ -347,17 +357,13 @@ onBeforeUnmount(() => {
 }
 
 .qr-login {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  .flex-center(column);
   gap: 12px;
 
   .qr-box {
     width: 180px;
     height: 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    .flex-center;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 8px;
 

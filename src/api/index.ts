@@ -20,7 +20,8 @@ import type {
   UserLoginQRcodeStatus,
   ChorusResponse,
   VipSong,
-  LoveHundredUsers
+  LoveHundredUsers,
+  FMList
 } from '@/types/dataTypes';
 
 // 排行榜列表
@@ -280,4 +281,10 @@ export function logout() {
   return get<{ code: number }>('/logout', {
     params: { timestamp: Date.now() },
   });
+}
+
+
+// 私人FM
+export function getFMList() {
+  return get<{ code: number, data: FMList[]}>('/personal_fm');
 }

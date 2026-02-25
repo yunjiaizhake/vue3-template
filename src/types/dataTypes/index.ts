@@ -14,7 +14,8 @@ import type {
   SongDetailResponse,
   SongObjectType,
   VipSong,
-  LoveHundredUsers
+  LoveHundredUsers,
+  FMList
 } from './song_detail';
 import type { UserIdentityDetail, UserLoginKey, UserLoginQRcode, UserLoginQRcodeStatus } from './user_identity';
 
@@ -45,5 +46,6 @@ export type {
   UserLoginKey,
   UserLoginQRcode,
   UserLoginQRcodeStatus,
-  LoveHundredUsers
+  LoveHundredUsers,
+  FMList
 };
