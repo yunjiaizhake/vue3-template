@@ -7,10 +7,7 @@
           <div class="router-view-wrapper">
             <transition name="music-fade">
               <keep-alive :include="cachedRoutes">
-                <component
-                  :is="Component"
-                  class="router-view"
-                />
+                <component :is="Component" class="router-view" />
               </keep-alive>
             </transition>
           </div>
@@ -27,10 +24,7 @@
     </div>
 
     <!--播放器-->
-    <div
-      class="music-bar"
-      :class="{ disable: !musicReady || !currentMusic.id }"
-    >
+    <div class="music-bar" :class="{ disable: !musicReady || !currentMusic.id }">
       <div class="music-bar-btns">
         <bb-icon
           class="pointer"
@@ -39,11 +33,7 @@
           title="上一曲 Ctrl + Left"
           @click="prev"
         />
-        <div
-          class="control-play pointer"
-          title="播放暂停 Ctrl + Space"
-          @click="play"
-        >
+        <div class="control-play pointer" title="播放暂停 Ctrl + Space" @click="play">
           <bb-icon
             :type="playing ? 'pause' : 'play'"
             :size="24"
@@ -123,10 +113,7 @@
         @contextmenu="handleContextMenu"
       />
     </teleport>
-    <ai-chat-voice
-      v-if="isVoiceModalOpen"
-      @close="isVoiceModalOpen = false"
-    />
+    <ai-chat-voice v-if="isVoiceModalOpen" @close="isVoiceModalOpen = false" />
   </div>
 </template>
 
@@ -136,12 +123,7 @@ defineOptions({ name: 'music' });
 import { usePlayerStore } from '@/stores/index.ts';
 import { getLyric, getChorus, getMusicUrl_v1 } from '@/api';
 import bbPlayerMusic from './bbPlayer';
-import {
-  randomSortArray,
-  parseLyric,
-  format,
-  silencePromise,
-} from '@/utils/util';
+import { randomSortArray, parseLyric, format, silencePromise } from '@/utils/util';
 import { PLAY_MODE, BBPlayer_CONFIG } from '@/config';
 import { getVolume, setVolume, addRecommendHistory } from '@/utils/storage';
 import { recommendFromFavorites, toggleImmersive } from '@/utils/context-menu';
@@ -262,7 +244,7 @@ watch(currentMusic, async (newMusic, oldMusic) => {
   if (newMusic.id === oldMusic.id) return;
 
   if (!newMusic.url) {
-    console.log('newMusic',toRaw(newMusic)) // toRaw 返回那个被 Proxy 包裹的原始对象
+    console.log('newMusic', toRaw(newMusic)); // toRaw 返回那个被 Proxy 包裹的原始对象
     const res = await getMusicUrl_v1(newMusic.id);
     newMusic.url = res.data?.[0]?.url || '';
   }
@@ -278,9 +260,7 @@ watch(currentMusic, async (newMusic, oldMusic) => {
 
 watch(playing, (newPlaying) => {
   nextTick(() => {
-    newPlaying
-      ? silencePromise(audioEle.value!.play())
-      : audioEle.value!.pause();
+    newPlaying ? silencePromise(audioEle.value!.play()) : audioEle.value!.pause();
     musicReady.value = true;
   });
 });
@@ -352,7 +332,7 @@ watch(
     if (isAiRecommendActive.value && song) {
       const record = `${song.singer}：${song.name}`;
       addRecommendHistory(record);
-      proxy?.$bbToast?.(`已经为您推荐歌曲：${song.name}`,'center',3000);
+      proxy?.$bbToast?.(`已经为您推荐歌曲：${song.name}`, 'center', 3000);
       isAiRecommendActive.value = false;
     }
   },
@@ -600,7 +580,10 @@ async function handleContextMenuSelect(key: string) {
       openComment();
       break;
     case 'ai_recommend':
-      await recommendFromFavorites({ isAiRecommendActive, toast:proxy?.$bbToast });
+      await recommendFromFavorites({
+        isAiRecommendActive,
+        toast: proxy?.$bbToast,
+      });
       break;
     case 'immersive':
       await toggleImmersive({ isImmersive, isMusicPlay });
@@ -611,7 +594,6 @@ async function handleContextMenuSelect(key: string) {
   }
   contextMenuRef.value?.close();
 }
-
 
 function _getLyric(id: string) {
   getLyric(id).then((res) => {

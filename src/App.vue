@@ -37,7 +37,7 @@ const disableFullscreenKeys = (event: KeyboardEvent) => {
 // ------------------------------ 生命周期 ------------------------------
 onMounted(async () => {
   window.addEventListener('keydown', disableFullscreenKeys);
-  printLog()
+  printLog();
   // 设置audio元素
   playerStore.setAudioEle(bbPlayer.value!);
 

@@ -26,10 +26,22 @@
     </dl>
 
     <!-- 登录 -->
-    <bb-dialog ref="loginDialog" head-text="登录" confirm-btn-text="登录" cancel-btn-text="关闭" @confirm="login">
+    <bb-dialog
+      ref="loginDialog"
+      head-text="登录"
+      confirm-btn-text="登录"
+      cancel-btn-text="关闭"
+      @confirm="login"
+    >
       <div class="bb-dialog-text">
-        <input v-model.trim="uidValue" class="bb-dialog-input" type="number" autofocus placeholder="请输入您的网易云 UID"
-          @keyup.enter="login" />
+        <input
+          v-model.trim="uidValue"
+          class="bb-dialog-input"
+          type="number"
+          autofocus
+          placeholder="请输入您的网易云 UID"
+          @keyup.enter="login"
+        />
       </div>
 
       <template #btn>
@@ -39,7 +51,13 @@
     </bb-dialog>
 
     <!-- 帮助 -->
-    <bb-dialog ref="helpDialog" head-text="登录帮助" confirm-btn-text="去登录" cancel-btn-text="关闭" @confirm="openDialog(0)">
+    <bb-dialog
+      ref="helpDialog"
+      head-text="登录帮助"
+      confirm-btn-text="去登录"
+      cancel-btn-text="关闭"
+      @confirm="openDialog(0)"
+    >
       <div class="bb-dialog-text">
         <p>
           1、
@@ -58,8 +76,14 @@
     <bb-dialog ref="outDialog" body-text="确定退出当前用户吗？" @confirm="out" />
 
     <!-- 扫码登录 -->
-    <bb-dialog ref="qrDialog" head-text="扫码登录" confirm-btn-text="去登录" cancel-btn-text="关闭" @confirm="openDialog(0)"
-      @cancel="closeQrDialog">
+    <bb-dialog
+      ref="qrDialog"
+      head-text="扫码登录"
+      confirm-btn-text="去登录"
+      cancel-btn-text="关闭"
+      @confirm="openDialog(0)"
+      @cancel="closeQrDialog"
+    >
       <div class="bb-dialog-text qr-login">
         <div class="qr-box">
           <img v-if="qrImg" :src="qrImg" alt="二维码" />
@@ -83,7 +107,7 @@ import {
 } from '@/api';
 import BbDialog from '@/base/bb-dialog/index.vue';
 import { toHttps } from '@/utils/util';
-import { setCookie,clearRecommendHistory } from '@/utils/storage'
+import { setCookie, clearRecommendHistory } from '@/utils/storage';
 import type { Creator as UserItem } from '@/types/dataTypes';
 
 // ------------------------------ store ------------------------------
@@ -98,8 +122,7 @@ const uidValue = ref<string>('');
 const { proxy } = getCurrentInstance()!;
 
 // ------------------------------ refs ------------------------------
-const loginDialog =
-  useTemplateRef<InstanceType<typeof BbDialog>>('loginDialog');
+const loginDialog = useTemplateRef<InstanceType<typeof BbDialog>>('loginDialog');
 const helpDialog = useTemplateRef<InstanceType<typeof BbDialog>>('helpDialog');
 const outDialog = useTemplateRef<InstanceType<typeof BbDialog>>('outDialog');
 const qrDialog = useTemplateRef<InstanceType<typeof BbDialog>>('qrDialog');
@@ -175,7 +198,7 @@ const startQrLogin = async () => {
         }
         const loginStatus = await getLoginStatus(status.cookie);
 
-        const userId = loginStatus.data.profile?.userId
+        const userId = loginStatus.data.profile?.userId;
         if (userId) {
           app_getUserPlaylist(userId);
           closeQrDialog();
@@ -193,7 +216,7 @@ const out = () => {
   user.value = {};
   setUid(null);
   logout();
-  clearRecommendHistory()
+  clearRecommendHistory();
   proxy!.$bbToast?.('退出成功！');
 };
 
