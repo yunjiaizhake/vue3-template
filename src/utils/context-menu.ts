@@ -1,16 +1,25 @@
 import type { Ref } from 'vue';
-import { getAiChat, getFavoriteListByUid, recommendLoveHundredSong,getFMList } from '@/api';
-import type { SongDetailItem,FMList } from '@/types/dataTypes';
-import { getFavoriteList, getRecommendHistory, getUserId, getCookie } from '@/utils/storage';
-import { searchAndPlay } from "@/utils/aiplay"
+import {
+  getAiChat,
+  getFavoriteListByUid,
+  recommendLoveHundredSong,
+  getFMList,
+} from '@/api';
+import type { SongDetailItem, FMList } from '@/types/dataTypes';
+import {
+  getFavoriteList,
+  getRecommendHistory,
+  getUserId,
+  getCookie,
+} from '@/utils/storage';
+import { searchAndPlay } from '@/utils/aiplay';
 
 type ToastPosition = 'top' | 'center' | 'bottom';
 type ToastFn = (msg: string, position?: ToastPosition, duration?: number) => void;
 const uid = getUserId();
 const cookie = getCookie();
-let FMSongNumber:number = 0;
-let FMSongList:FMList[] = []
-
+let FMSongNumber: number = 0;
+let FMSongList: FMList[] = [];
 
 // 沉浸式体验
 export async function toggleImmersive(options: {
@@ -76,16 +85,17 @@ export async function recommendFromFavorites(options: {
       return;
     }
     // 协同过滤没有拿到歌曲，走网易FM歌曲
-    if ((!FMSongList.length || FMSongNumber == FMSongList.length) && cookie){
-      FMSongList = (await getFMList()).data
-      FMSongNumber = 0
+    if ((!FMSongList.length || FMSongNumber == FMSongList.length) && cookie) {
+      FMSongList = (await getFMList()).data;
+      console.log('正在为您推荐歌曲：', FMSongList);
+      FMSongNumber = 0;
     }
 
-    if (FMSongList[FMSongNumber]){
-      searchAndPlay(FMSongList[FMSongNumber]!.name)
-      toast?.('已为您播放：'+FMSongList[FMSongNumber]!.name);
-      FMSongNumber ++ 
-      return
+    if (FMSongList[FMSongNumber]) {
+      searchAndPlay(FMSongList[FMSongNumber]!.name);
+      toast?.('已为您播放：' + FMSongList[FMSongNumber]!.name);
+      FMSongNumber++;
+      return;
     }
     const payload = favorites.map((item) => ({
       name: item.name,

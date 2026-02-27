@@ -21,7 +21,7 @@ import type {
   ChorusResponse,
   VipSong,
   LoveHundredUsers,
-  FMList
+  FMList,
 } from '@/types/dataTypes';
 
 // 排行榜列表
@@ -144,11 +144,7 @@ export function getChorus(id: string) {
 }
 
 // 获取音乐评论
-export function getComment(
-  id: string,
-  page: number,
-  limit: number = DEFAULT_LIMIT,
-) {
+export function getComment(id: string, page: number, limit: number = DEFAULT_LIMIT) {
   return get<CommentMetaResponse>('/comment/music', {
     params: {
       offset: page * limit,
@@ -194,15 +190,12 @@ export function addLoveHundredUser(
   name: string,
   singer: string,
 ) {
-  return post<{ code: number; data: LoveHundredUsers }>(
-    '/love/hundred/users/add',
-    {
-      musicId,
-      userId,
-      name,
-      singer,
-    },
-  );
+  return post<{ code: number; data: LoveHundredUsers }>('/love/hundred/users/add', {
+    musicId,
+    userId,
+    name,
+    singer,
+  });
 }
 
 // 删除满喜欢度用户（数据库）
@@ -212,26 +205,21 @@ export function removeLoveHundredUser(
   name: string,
   singer: string,
 ) {
-  return post<{ code: number; data: LoveHundredUsers }>(
-    '/love/hundred/users/remove',
-    {
-      musicId,
-      userId,
-      name,
-      singer,
-    },
-  );
+  return post<{ code: number; data: LoveHundredUsers }>('/love/hundred/users/remove', {
+    musicId,
+    userId,
+    name,
+    singer,
+  });
 }
 
 // 满喜爱度推荐（数据库）
-export function recommendLoveHundredSong(
-  userId: string,
-  history: string[] = [],
-) {
-  return post<{ code: number; data: { songName: string; index: number } | null; message?: string }>(
-    '/love/hundred/recommend',
-    { userId, history },
-  );
+export function recommendLoveHundredSong(userId: string, history: string[] = []) {
+  return post<{
+    code: number;
+    data: { songName: string; index: number } | null;
+    message?: string;
+  }>('/love/hundred/recommend', { userId, history });
 }
 
 // 获取二维码 key
@@ -277,14 +265,14 @@ export function getLoginStatus(cookie?: string) {
 
 // 退出登录
 export function logout() {
-  clearCookie()
+  clearCookie();
   return get<{ code: number }>('/logout', {
     params: { timestamp: Date.now() },
   });
 }
 
-
 // 私人FM
 export function getFMList() {
-  return get<{ code: number, data: FMList[]}>('/personal_fm');
+  const timestamp = crypto.randomUUID();
+  return get<{ code: number; data: FMList[] }>('/personal_fm?timestamp=' + timestamp);
 }
