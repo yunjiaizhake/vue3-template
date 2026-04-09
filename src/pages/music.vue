@@ -121,9 +121,15 @@
 defineOptions({ name: 'music' });
 
 import { usePlayerStore } from '@/stores/index.ts';
-import { getLyric, getChorus, getMusicUrl_v1 } from '@/api';
+import { getLyric, getChorus, getMusicUrl_v1, getAIMusicLyric } from '@/api';
 import bbPlayerMusic from './bbPlayer';
-import { randomSortArray, parseLyric, format, silencePromise } from '@/utils/util';
+import {
+  randomSortArray,
+  parseLyric,
+  parseAILyric,
+  format,
+  silencePromise,
+} from '@/utils/util';
 import { PLAY_MODE, BBPlayer_CONFIG } from '@/config';
 import { getVolume, setVolume, addRecommendHistory } from '@/utils/storage';
 import { recommendFromFavorites, toggleImmersive } from '@/utils/context-menu';
@@ -253,8 +259,8 @@ watch(currentMusic, async (newMusic, oldMusic) => {
   lyricIndex.value = currentTime.value = currentProgress.value = 0;
   silencePromise(audioEle.value!.play());
   nextTick(() => {
-    _getLyric(newMusic.id);
-    _getChorus(newMusic.id);
+    _getLyric(newMusic);
+    _getChorus(newMusic);
   });
 });
 
@@ -595,8 +601,12 @@ async function handleContextMenuSelect(key: string) {
   contextMenuRef.value?.close();
 }
 
-function _getLyric(id: string) {
-  getLyric(id).then((res) => {
+function _getLyric(music: SongDetailItem) {
+  if (music.isAIMusic) {
+    _getAILyric(music);
+    return;
+  }
+  getLyric(music.id).then((res) => {
     if (res.lrc && res.lrc.lyric) {
       nolyric.value = false;
       lyric.value = parseLyric(res.lrc.lyric);
@@ -606,15 +616,42 @@ function _getLyric(id: string) {
     silencePromise(audioEle.value!.play());
   });
 }
+// AI 获取歌词
+function _getAILyric(music: SongDetailItem) {
+  const { taskId, audioId } = music;
+  if (!taskId || !audioId) {
+    nolyric.value = true;
+    silencePromise(audioEle.value!.play());
+    return;
+  }
+  getAIMusicLyric(taskId, audioId)
+    .then((res) => {
+      if (res.code === 200 && res.data?.alignedWords?.length) {
+        nolyric.value = false;
+        lyric.value = parseAILyric(res.data.alignedWords);
+      } else {
+        nolyric.value = true;
+      }
+      silencePromise(audioEle.value!.play());
+    })
+    .catch(() => {
+      nolyric.value = true;
+      silencePromise(audioEle.value!.play());
+    });
+}
 
-// 获取歌词副歌部分
-function _getChorus(id: string) {
+// 获取歌词副歌部分（AI 音乐不支持）
+function _getChorus(music: SongDetailItem) {
+  if (music.isAIMusic) {
+    chorusMarkers.value = [];
+    return;
+  }
   const duration = currentMusic.value.duration || 0;
   if (!duration) {
     chorusMarkers.value = [];
     return;
   }
-  getChorus(id)
+  getChorus(music.id)
     .then((res) => {
       const list = res.chorus || [];
       chorusMarkers.value = list

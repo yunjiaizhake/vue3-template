@@ -1,4 +1,4 @@
-import type { LyricLine, SongDetailItem } from '@/types/dataTypes';
+import type { LyricLine, LyricWord, SongDetailItem } from '@/types/dataTypes';
 
 // 随机排序数组/洗牌函数 https://github.com/lodash/lodash/blob/master/shuffle.js
 function copyArray(source: unknown[], array: unknown[] | undefined = undefined) {
@@ -30,7 +30,6 @@ export const randomSortArray = function shuffle(array: SongDetailItem[]) {
   return result;
 };
 
-
 // 补0函数
 export function addZero(s: number) {
   return s < 10 ? '0' + s : s;
@@ -50,14 +49,26 @@ export function parseLyric(lrc: string): LyricLine[] {
     if (text) {
       lyric.push({
         time:
-          (Number(result[1]) * 6e4 +
-            Number(result[2]) * 1e3 +
-            Number(result[3] || 0)) /
+          (Number(result[1]) * 6e4 + Number(result[2]) * 1e3 + Number(result[3] || 0)) /
           1e3,
         text,
       });
     }
   }
+  console.log('1111111111111111111', lyric);
+  return lyric;
+}
+
+// AI 歌词解析：每个 alignedWord 已是完整短句，直接映射为一行歌词
+export function parseAILyric(words: LyricWord[]): LyricLine[] {
+  if (!words || words.length === 0) return [];
+  const lyric = words
+    .map((w) => ({
+      time: w.startS,
+      text: w.word.replace(/\n/g, '').trim(),
+    }))
+    .filter((l) => l.text.length > 0);
+  console.log('2222222222222222222', lyric);
   return lyric;
 }
 
@@ -74,7 +85,7 @@ export function isPromise(v: Promise<unknown>) {
 
 export function silencePromise(value: Promise<unknown>) {
   if (isPromise(value)) {
-    value.then(null, () => { });
+    value.then(null, () => {});
   }
 }
 

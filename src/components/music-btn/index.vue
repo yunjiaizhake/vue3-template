@@ -17,12 +17,11 @@
     <router-link to="/music/historylist" custom v-slot="{ navigate, isActive }">
       <span :class="{ active: isActive }" @click="navigate">我听过的</span>
     </router-link>
-    <router-link
-      to="/music/favoritelist"
-      custom
-      v-slot="{ navigate, isActive }"
-    >
+    <router-link to="/music/favoritelist" custom v-slot="{ navigate, isActive }">
       <span :class="{ active: isActive }" @click="navigate">我收藏的</span>
+    </router-link>
+    <router-link to="/music/creative-workshop" custom v-slot="{ navigate, isActive }">
+      <span :class="{ active: isActive }" @click="navigate">创意工坊</span>
     </router-link>
     <router-link
       v-if="isOnline"
@@ -32,12 +31,7 @@
     >
       <span :class="{ active: isActive }" @click="navigate">音乐小助手</span>
     </router-link>
-    <router-link
-      v-else
-      to="/music/ai-chat"
-      custom
-      v-slot="{ navigate, isActive }"
-    >
+    <router-link v-else to="/music/ai-chat" custom v-slot="{ navigate, isActive }">
       <span :class="{ active: isActive }" @click="navigate">AI(本地)</span>
     </router-link>
   </div>

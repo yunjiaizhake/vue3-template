@@ -35,6 +35,10 @@ export interface SongObjectType {
   duration: number;
   url: string;
   lovePercent?: number;
+  // 下面三个转为 AI 生成音乐设计
+  isAIMusic?: boolean;
+  taskId?: string;
+  audioId?: string;
 }
 
 export interface LoveHundredUsers {
@@ -58,5 +62,5 @@ export interface VipSong {
 // 私人FM
 export interface FMList {
   name: string;
-  id: string
+  id: string;
 }

@@ -94,6 +94,15 @@ const routes = [
           keepAlive: true,
         },
       },
+      {
+        path: '/music/creative-workshop', // 创意工坊
+        name: 'music-creative-workshop',
+        component: () => import('@/pages/creativeWorkshop/index.vue'),
+        meta: {
+          title: '创意工坊',
+          keepAlive: true,
+        },
+      },
     ],
   },
 ];

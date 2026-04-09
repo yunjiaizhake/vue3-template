@@ -1,11 +1,6 @@
 import type { ToplistItem, ToplistDetailResponse } from './toplist_detail';
 import type { HotList, PersonalizedResponse } from './personalized';
-import type {
-  HotListResponse,
-  HotItem,
-  SongDetailItem,
-  SearchResponse,
-} from './search';
+import type { HotListResponse, HotItem, SongDetailItem, SearchResponse } from './search';
 import type { PlaylistItem, Creator, PlaylistResponse } from './user_playlist';
 import type { LyricLine, LyricResponse, ChorusResponse, ChorusSegment } from './lyric';
 import type { CommentMetaResponse, CommentItem } from './comment';
@@ -15,9 +10,22 @@ import type {
   SongObjectType,
   VipSong,
   LoveHundredUsers,
-  FMList
+  FMList,
 } from './song_detail';
-import type { UserIdentityDetail, UserLoginKey, UserLoginQRcode, UserLoginQRcodeStatus } from './user_identity';
+import type {
+  UserIdentityDetail,
+  UserLoginKey,
+  UserLoginQRcode,
+  UserLoginQRcodeStatus,
+} from './user_identity';
+import type {
+  AIMusicBaseResponse,
+  AIMusicGenerateResponse,
+  AIMusicDetailResponse,
+  AIMusicLyricResponse,
+  SunoMusicItem,
+  LyricWord,
+} from './aimusic';
 
 export type {
   ToplistItem,
@@ -47,5 +55,11 @@ export type {
   UserLoginQRcode,
   UserLoginQRcodeStatus,
   LoveHundredUsers,
-  FMList
+  FMList,
+  AIMusicBaseResponse,
+  AIMusicGenerateResponse,
+  AIMusicDetailResponse,
+  AIMusicLyricResponse,
+  SunoMusicItem,
+  LyricWord,
 };

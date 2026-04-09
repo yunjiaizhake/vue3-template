@@ -1,5 +1,6 @@
 import { BBPlayer_CONFIG } from '@/config';
 import type { SongDetailItem } from '@/types/dataTypes';
+import type { SunoMusicItem } from '@/types/dataTypes/aimusic';
 
 const STORAGE = window.localStorage;
 const storage = {
@@ -198,6 +199,50 @@ export function addRecommendHistory(songName: string) {
 // 清空推荐历史
 export function clearRecommendHistory() {
   storage.clear(RECOMMEND_HISTORY_KEY);
+  return [];
+}
+
+/**
+ * AI生成歌曲列表
+ * @type    AI_MUSIC_KEY：key值
+ *          AIMusicListMAX：最大长度
+ */
+const AI_MUSIC_KEY = '__bbPlayer_aiMusicList__';
+const AIMusicListMAX = 100;
+// 获取AI生成歌曲列表
+export function getAIMusicList(): SunoMusicItem[] {
+  return storage.get<SunoMusicItem[]>(AI_MUSIC_KEY, []);
+}
+
+// 添加AI生成歌曲（去重，新歌曲插入到最前面）
+export function setAIMusicList(music: SunoMusicItem | SunoMusicItem[]) {
+  let list = storage.get<SunoMusicItem[]>(AI_MUSIC_KEY, []);
+  const items = Array.isArray(music) ? music : [music];
+  for (const item of items) {
+    const index = list.findIndex((m) => m.id === item.id);
+    if (index > -1) {
+      list.splice(index, 1);
+    }
+    list.unshift(item);
+  }
+  if (AIMusicListMAX && list.length > AIMusicListMAX) {
+    list = list.slice(0, AIMusicListMAX);
+  }
+  storage.set(AI_MUSIC_KEY, JSON.stringify(list));
+  return list;
+}
+
+// 删除一条AI生成歌曲
+export function removeAIMusic(id: string) {
+  let list = storage.get<SunoMusicItem[]>(AI_MUSIC_KEY, []);
+  list = list.filter((item) => item.id !== id);
+  storage.set(AI_MUSIC_KEY, JSON.stringify(list));
+  return list;
+}
+
+// 清空AI生成歌曲列表
+export function clearAIMusicList() {
+  storage.clear(AI_MUSIC_KEY);
   return [];
 }
 

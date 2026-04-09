@@ -1,4 +1,4 @@
-import { get, post } from '@/utils/axios';
+import service, { get, post } from '@/utils/axios';
 import { getCookie, clearCookie } from '@/utils/storage';
 import { DEFAULT_LIMIT } from '@/config';
 import { formatSongs } from '@/utils/song';
@@ -22,6 +22,9 @@ import type {
   VipSong,
   LoveHundredUsers,
   FMList,
+  AIMusicGenerateResponse,
+  AIMusicDetailResponse,
+  AIMusicLyricResponse,
 } from '@/types/dataTypes';
 
 // 排行榜列表
@@ -275,4 +278,26 @@ export function logout() {
 export function getFMList() {
   const timestamp = crypto.randomUUID();
   return get<{ code: number; data: FMList[] }>('/personal_fm?timestamp=' + timestamp);
+}
+
+// ======================== AI 音乐相关接口（不走 withCookie）========================
+
+// AI 音乐 - 生成音乐
+export function generateAIMusic(params: Record<string, unknown>) {
+  return service.post('/aimusic/generate', params) as Promise<AIMusicGenerateResponse>;
+}
+
+// AI 音乐 - 查询任务详情
+export function getAIMusicDetail(taskId: string) {
+  return service.get('/aimusic/get-music-detail', {
+    params: { taskId },
+  }) as Promise<AIMusicDetailResponse>;
+}
+
+// AI 音乐 - 获取带时间戳的歌词
+export function getAIMusicLyric(taskId: string, audioId: string) {
+  return service.post('/aimusic/get-music-lyric', {
+    taskId,
+    audioId,
+  }) as Promise<AIMusicLyricResponse>;
 }
