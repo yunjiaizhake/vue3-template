@@ -25,6 +25,7 @@ import type {
   AIMusicGenerateResponse,
   AIMusicDetailResponse,
   AIMusicLyricResponse,
+  SunoMusicItem,
 } from '@/types/dataTypes';
 
 // 排行榜列表
@@ -177,6 +178,33 @@ export function saveFavoriteListByUid(uid: string, list: SongDetailItem[]) {
     uid,
     list,
   });
+}
+
+// 获取 AI 生成歌曲列表（数据库）
+export function getAIMusicListByUid(uid: string) {
+  return get<{ code: number; data: (SunoMusicItem & { _taskId?: string })[] }>(
+    '/aimusic/list',
+    { params: { uid } },
+  );
+}
+
+// 保存 AI 生成歌曲列表（数据库）
+export function saveAIMusicListByUid(
+  uid: string,
+  list: (SunoMusicItem & { _taskId?: string })[],
+) {
+  return post<{ code: number; data: (SunoMusicItem & { _taskId?: string })[] }>(
+    '/aimusic/list',
+    { uid, list },
+  );
+}
+
+// 删除单条 AI 生成歌曲（数据库）
+export function removeAIMusicByUid(uid: string, id: string) {
+  return post<{ code: number; data: (SunoMusicItem & { _taskId?: string })[] }>(
+    '/aimusic/list/remove',
+    { uid, id },
+  );
 }
 
 // 获取满喜欢度用户列表（数据库）

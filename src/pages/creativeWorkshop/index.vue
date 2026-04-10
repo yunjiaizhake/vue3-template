@@ -280,10 +280,11 @@
             :class="{ generating: item.status === 'generating' }"
           >
             <div class="result-info">
-              <span class="result-title">{{ item.title }}</span>
+              <span class="result-title">{{ item.title || '未命名作品' }}</span>
               <span class="result-style">{{ item.style }}</span>
             </div>
-            <div class="result-status">
+            <div class="result-meta-row">
+              <span class="result-time">{{ formatCreateTime(item.createdAt) }}</span>
               <span v-if="item.status === 'generating'" class="status-tag generating">
                 生成中...
               </span>
@@ -293,7 +294,7 @@
               <span v-else class="status-tag failed"> 失败 </span>
             </div>
             <div v-if="item.status === 'success' && item.audioUrl" class="result-actions">
-              <button class="action-btn play" @click="playResult(item)">▶ 试听</button>
+              <button class="action-btn play" @click="playResult(item)">▶ 播放</button>
             </div>
           </div>
         </div>
@@ -329,7 +330,14 @@
                 >
                   删除
                 </button>
-                <button class="action-btn play" @click="playSong(song)">▶ 试听</button>
+                <button
+                  v-if="aiMusicStore.sunoList[idx]?.audioUrl"
+                  class="action-btn download"
+                  @click="downloadSong(aiMusicStore.sunoList[idx]!.audioUrl, song.name)"
+                >
+                  下载
+                </button>
+                <button class="action-btn play" @click="playSong(song)">▶ 播放</button>
               </div>
             </div>
           </div>
@@ -559,6 +567,24 @@ function playResult(item: GeneratedItem) {
 
 function playSong(song: SongDetailItem) {
   playerStore.selectAddPlay(song);
+}
+
+async function downloadSong(url: string, name: string) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = `${name}.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    console.error('[下载失败]', e);
+    window.open(url, '_blank');
+  }
 }
 
 function formatCreateTime(ts?: number) {
@@ -1134,8 +1160,16 @@ function formatCreateTime(ts?: number) {
   flex-shrink: 0;
 }
 
-.result-status {
+.result-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 8px;
+}
+
+.result-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .status-tag {
@@ -1187,6 +1221,16 @@ function formatCreateTime(ts?: number) {
 
     &:hover {
       background: rgba(245, 87, 108, 0.3);
+    }
+  }
+
+  &.download {
+    background: rgba(64, 206, 143, 0.15);
+    color: #40ce8f;
+    text-decoration: none;
+
+    &:hover {
+      background: rgba(64, 206, 143, 0.3);
     }
   }
 }
@@ -1307,7 +1351,6 @@ function formatCreateTime(ts?: number) {
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
-
 
 // ---- 响应式 ----
 @media (max-width: 768px) {

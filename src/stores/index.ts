@@ -10,6 +10,7 @@ import {
   setUserId,
 } from '@/utils/storage';
 import { useFavoriteStore } from './favorite_list';
+import { useAIMusicStore } from './aiMusic';
 import type { SongDetailItem } from '@/types/dataTypes';
 
 function findIndex(list: SongDetailItem[], music: SongDetailItem) {
@@ -77,6 +78,7 @@ export const usePlayerStore = defineStore('player', {
     setUid(uid: string | null) {
       this.uid = setUserId(uid);
       useFavoriteStore().setUid(this.uid);
+      useAIMusicStore().setUid(this.uid);
     },
 
     // 记录切歌方向
