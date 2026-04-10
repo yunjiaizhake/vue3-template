@@ -45,8 +45,22 @@
           <div
             v-if="msg.role === 'assistant'"
             class="message-text markdown-body"
-            v-html="renderMarkdown(msg.content)"
-          ></div>
+          >
+            <template
+              v-for="(part, pi) in parseMessageParts(msg.content)"
+              :key="pi"
+            >
+              <div
+                v-if="part.type === 'text'"
+                v-html="renderMarkdown(part.content)"
+              ></div>
+              <MusicCard
+                v-else
+                :name="part.name"
+                :artist="part.artist"
+              />
+            </template>
+          </div>
           <div v-else class="message-text">{{ msg.content }}</div>
         </div>
       </div>
@@ -97,6 +111,30 @@ defineOptions({ name: 'music-ai-chat-online' });
 import { useAiChatOnlineStore } from '@/stores/aiChatOnline';
 import { storeToRefs } from 'pinia';
 import { marked } from 'marked';
+import MusicCard from '@/components/music-card/index.vue';
+
+type MessagePart =
+  | { type: 'text'; content: string }
+  | { type: 'music'; name: string; artist: string };
+
+const MUSIC_TAG_RE = /\[play:(.+?):(.+?)\]/g;
+
+function parseMessageParts(content: string): MessagePart[] {
+  const parts: MessagePart[] = [];
+  let lastIndex = 0;
+
+  for (const match of content.matchAll(MUSIC_TAG_RE)) {
+    const before = content.slice(lastIndex, match.index);
+    if (before) parts.push({ type: 'text', content: before });
+    parts.push({ type: 'music', name: match[1]!, artist: match[2]! });
+    lastIndex = match.index! + match[0].length;
+  }
+
+  const tail = content.slice(lastIndex);
+  if (tail) parts.push({ type: 'text', content: tail });
+
+  return parts.length > 0 ? parts : [{ type: 'text', content }];
+}
 
 // ------------------------------ Store ------------------------------
 const aiChatStore = useAiChatOnlineStore();
