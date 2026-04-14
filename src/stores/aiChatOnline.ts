@@ -1,9 +1,13 @@
 import { defineStore } from 'pinia';
 
 // ------------------------------ 类型定义 ------------------------------
+export type ContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } };
+
 export interface ChatMessage {
   role: 'user' | 'assistant';
-  content: string;
+  content: string | ContentPart[];
 }
 
 // ------------------------------ 过期时间配置 ------------------------------
@@ -48,19 +52,13 @@ export const useAiChatOnlineStore = defineStore('aiChatOnline', {
 
   actions: {
     // 添加用户消息
-    addUserMessage(content: string) {
-      this.messages.push({
-        role: 'user',
-        content,
-      });
+    addUserMessage(content: string | ContentPart[]) {
+      this.messages.push({ role: 'user', content });
     },
 
     // 添加 AI 消息
     addAssistantMessage(content: string) {
-      this.messages.push({
-        role: 'assistant',
-        content,
-      });
+      this.messages.push({ role: 'assistant', content });
     },
 
     // 设置流式内容
