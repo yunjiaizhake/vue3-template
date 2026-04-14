@@ -113,7 +113,7 @@
         @contextmenu="handleContextMenu"
       />
     </teleport>
-    <ai-chat-voice v-if="isVoiceModalOpen" @close="isVoiceModalOpen = false" />
+    <!-- <ai-chat-voice v-if="isVoiceModalOpen" @close="isVoiceModalOpen = false" /> -->
   </div>
 </template>
 
@@ -143,7 +143,7 @@ import type { SongDetailItem, LyricLine } from '@/types/dataTypes';
 import { useAiEventBusStore } from '@/stores/aiEventBus';
 import MusicContextMenu from '@/components/music-context-menu/index.vue';
 import MusicImmersive from '@/components/music-immersive/index.vue';
-import AiChatVoice from '@/pages/aiChatVoice/index.vue';
+// import AiChatVoice from '@/pages/aiChatVoice/index.vue';
 import type { ContextMenuItem } from '@/hooks/useContextMenu';
 
 // ------------------------------ 数据 ------------------------------
@@ -233,11 +233,12 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
       label: isImmersive.value ? '回到主页面' : '打开沉浸式体验',
       disabled: !hasMusic && !isImmersive.value,
     },
-    {
-      key: 'voice',
-      label: `${isVoiceModalOpen.value ? '关闭语音识别' : '打开语音识别'}`,
-      disabled: false,
-    },
+    // 暂时屏蔽语音识别
+    // {
+    //   key: 'voice',
+    //   label: `${isVoiceModalOpen.value ? '关闭语音识别' : '打开语音识别'}`,
+    //   disabled: false,
+    // },
   ];
 });
 
@@ -594,9 +595,9 @@ async function handleContextMenuSelect(key: string) {
     case 'immersive':
       await toggleImmersive({ isImmersive, isMusicPlay });
       break;
-    case 'voice':
-      isVoiceModalOpen.value = !isVoiceModalOpen.value;
-      break;
+    // case 'voice':
+    //   isVoiceModalOpen.value = !isVoiceModalOpen.value;
+    //   break;
   }
   contextMenuRef.value?.close();
 }

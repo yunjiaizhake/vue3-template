@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import AutoImport from 'unplugin-auto-import/vite';
 import { resolve } from 'path';
@@ -6,8 +6,8 @@ import { resolve } from 'path';
 export default defineConfig(({ mode }) => {
   console.log('当前运行模式 mode:', mode);
 
-  const env = loadEnv(mode, process.cwd());
-  console.log('加载到的环境变量 env:', env);
+  // const env = loadEnv(mode, process.cwd()); loadEnv 在 vite 中引入
+  // console.log('加载到的环境变量 env:', env);
 
   return {
     plugins: [
