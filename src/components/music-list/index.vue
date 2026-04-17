@@ -239,6 +239,11 @@ async function onFavPressEnd(item: SongObjectType) {
     return;
   }
   const percent = getFavHoldPercent(item.id);
+  // 先停定时器，但保留 favHoldItemId 和 favHoldPercent 防止进度闪回
+  if (favHoldTimer.value) {
+    clearInterval(favHoldTimer.value);
+    favHoldTimer.value = null;
+  }
   await toggleFavorite({ ...item, lovePercent: percent }, true);
   clearFavHold();
 }
