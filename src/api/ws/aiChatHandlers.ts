@@ -24,4 +24,13 @@ export function dispatchAiChatMessage(data: any, aiBus: AiBus) {
   if (data?.type === 'play_song') {
     aiBus.emit_play_song(data.payload?.songName, data.payload?.index);
   }
+  if (data?.type === 'queued_song') {
+    const raw = data.payload?.artistsOrMoods;
+    const incoming: string[] = Array.isArray(raw)
+      ? raw
+      : typeof raw === 'string' && raw.trim()
+        ? [raw.trim()]
+        : [];
+    aiBus.merge_queued_songs(incoming);
+  }
 }

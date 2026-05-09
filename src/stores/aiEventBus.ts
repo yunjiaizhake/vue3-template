@@ -20,24 +20,29 @@ export const useAiEventBusStore = defineStore('aiEventBus', {
     music_control: null as MusicControl | null,
     play_song: null as PlaySong | null,
     volume_control: null as VolumeControlPayload | null,
+    // queue_song MCP工具检测到的歌手/情绪关键词队列，用Set去重，按插入顺序消费
+    queued_songs: [] as string[],
   }),
   actions: {
     emit_music_control(payload?: string) {
-      this.music_control = {
-        payload,
-      };
+      this.music_control = { payload };
     },
     emit_play_song(payload: string, index: number) {
-      this.play_song = {
-        payload,
-        index,
-      };
+      this.play_song = { payload, index };
     },
     emit_volume_control(action?: string, value?: number) {
-      this.volume_control = {
-        action,
-        value,
-      };
+      this.volume_control = { action, value };
+    },
+    add_queued_song(artistOrMood: string) {
+      if (!artistOrMood || this.queued_songs.includes(artistOrMood)) return;
+      this.queued_songs.push(artistOrMood);
+    },
+    merge_queued_songs(incoming: string[]) {
+      const merged = [...new Set([...this.queued_songs, ...incoming.filter(Boolean)])];
+      this.queued_songs = merged;
+    },
+    pop_queued_song(): string | undefined {
+      return this.queued_songs.shift();
     },
   },
 });

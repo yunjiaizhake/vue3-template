@@ -55,7 +55,7 @@ export function parseLyric(lrc: string): LyricLine[] {
       });
     }
   }
-  console.log('1111111111111111111', lyric);
+  console.log('歌词解析', lyric);
   return lyric;
 }
 
@@ -68,7 +68,7 @@ export function parseAILyric(words: LyricWord[]): LyricLine[] {
       text: w.word.replace(/\n/g, '').trim(),
     }))
     .filter((l) => l.text.length > 0);
-  console.log('2222222222222222222', lyric);
+  console.log('AI作曲歌词解析', lyric);
   return lyric;
 }
 

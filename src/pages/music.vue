@@ -590,6 +590,7 @@ async function handleContextMenuSelect(key: string) {
       await recommendFromFavorites({
         isAiRecommendActive,
         toast: proxy?.$bbToast,
+        aiBus,
       });
       break;
     case 'immersive':

@@ -13,6 +13,7 @@ import {
   getCookie,
 } from '@/utils/storage';
 import { searchAndPlay } from '@/utils/aiplay';
+import { useAiEventBusStore } from '@/stores/aiEventBus';
 
 type ToastPosition = 'top' | 'center' | 'bottom';
 type ToastFn = (msg: string, position?: ToastPosition, duration?: number) => void;
@@ -53,8 +54,19 @@ export async function toggleImmersive(options: {
 export async function recommendFromFavorites(options: {
   isAiRecommendActive: Ref<boolean>;
   toast?: ToastFn;
+  aiBus?: ReturnType<typeof useAiEventBusStore>;
 }) {
-  const { isAiRecommendActive, toast } = options;
+  const { isAiRecommendActive, toast, aiBus } = options;
+
+  // 优先消费 queue_song MCP 工具暂存的关键词队列，每次取第一个并移除（Set去重）
+  const bus = aiBus ?? useAiEventBusStore();
+  if (bus.queued_songs.length > 0) {
+    const artistOrMood = bus.pop_queued_song();
+    if (artistOrMood) {
+      await searchAndPlay(artistOrMood);
+      return;
+    }
+  }
   const userId = uid && uid !== 'null' ? uid : '00000000';
   isAiRecommendActive.value = true;
   let favorites: SongDetailItem[] = [];
@@ -75,7 +87,7 @@ export async function recommendFromFavorites(options: {
     toast?.('收藏列表为空，可以收藏几首喜欢的歌再来找我推荐哦');
     return;
   }
-  toast?.('正在根据满喜爱度歌曲为你推荐...', 'center', 0);
+  toast?.('正在为您智能推荐适合您的歌曲，请稍候...', 'center', 0);
   try {
     const history = getRecommendHistory();
     const res = await recommendLoveHundredSong(userId, history);
