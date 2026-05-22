@@ -159,9 +159,10 @@ export function getComment(id: string, page: number, limit: number = DEFAULT_LIM
 }
 
 // 进行和大模型的对话
-export function getAiChat(prompt: string) {
+export function getAiChat(prompt: string, uid?: string | null) {
   return post('/gpt/chat', {
     prompt,
+    uid: uid || undefined,
   });
 }
 
@@ -306,6 +307,53 @@ export function logout() {
 export function getFMList() {
   const timestamp = crypto.randomUUID();
   return get<{ code: number; data: FMList[] }>('/personal_fm?timestamp=' + timestamp);
+}
+
+// ======================== 推荐系统相关接口 ========================
+
+// 获取多模态融合推荐
+export function getRecommendSongs(uid: string, history: string[] = [], limit = 6) {
+  return post<{
+    code: number;
+    data: { musicId: string; name: string; singer: string; fusionScore: number; source: string }[];
+  }>('/recommend/songs', { uid, history, limit });
+}
+
+// 上报播放行为
+export function reportPlayBehavior(data: {
+  uid: string;
+  musicId: string;
+  name: string;
+  singer: string;
+  album: string;
+  duration: number;
+  playDuration: number;
+  isLoop?: boolean;
+}) {
+  return post<{ code: number; msg: string }>('/recommend/play-behavior', data);
+}
+
+// 上报推荐反馈
+export function reportRecommendFeedback(
+  uid: string,
+  musicId: string,
+  action: 'listened' | 'collected' | 'skipped' | 'completed',
+) {
+  return post<{ code: number; msg: string }>('/recommend/feedback', {
+    uid,
+    musicId,
+    action,
+  });
+}
+
+// 刷新用户相似度
+export function refreshSimilarities(uid?: string) {
+  return post<{ code: number; data: unknown }>('/recommend/refresh-similarities', { uid });
+}
+
+// 刷新用户偏好画像
+export function refreshProfile(uid?: string) {
+  return post<{ code: number; data: unknown }>('/recommend/refresh-profile', { uid });
 }
 
 // ======================== AI 音乐相关接口（不走 withCookie）========================

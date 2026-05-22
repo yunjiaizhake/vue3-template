@@ -4,7 +4,8 @@ import {
   removeFavoriteList,
   getUserId,
 } from '@/utils/storage';
-import { getFavoriteListByUid, saveFavoriteListByUid } from '@/api';
+import { getFavoriteListByUid, saveFavoriteListByUid, refreshProfile } from '@/api';
+import { reportCollectedFeedback } from '@/utils/playBehavior';
 import type { SongDetailItem } from '@/types/dataTypes';
 
 function findIndex(list: SongDetailItem[], music: SongDetailItem) {
@@ -77,6 +78,13 @@ export const useFavoriteStore = defineStore('favorite', {
       // ✅ 不存在 → 添加
       const nextList = [music, ...list].slice(0, 200);
       await this.persistFavoriteList(nextList);
+      // 上报收藏反馈 + 刷新偏好画像
+      if (music.id) {
+        reportCollectedFeedback(String(music.id));
+      }
+      if (this.hasValidUid(this.uid)) {
+        refreshProfile(this.uid as string).catch(() => {});
+      }
     },
 
     // 删除收藏

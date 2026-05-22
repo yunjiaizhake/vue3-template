@@ -214,6 +214,8 @@ function parseMessageParts(content: string): MessagePart[] {
 }
 
 // ------------------------------ Store ------------------------------
+import { usePlayerStore } from '@/stores/index';
+const playerStore = usePlayerStore();
 const aiChatStore = useAiChatOnlineStore();
 const { messages, streamingContent, isLoading } = storeToRefs(aiChatStore);
 
@@ -379,6 +381,7 @@ async function sendMessage() {
       body: JSON.stringify({
         prompt,
         messages: history,
+        uid: playerStore.uid || undefined,
       }),
       signal: currentAbortController.signal,
     });

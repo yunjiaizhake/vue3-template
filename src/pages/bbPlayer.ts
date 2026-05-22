@@ -2,6 +2,12 @@ import { PLAY_MODE } from '@/config';
 import { sendPlayerStatus } from '@/api/ws';
 import type { SongDetailItem, VipSong } from '@/types/dataTypes';
 import { getMusicUrl_v1 } from '@/api/index';
+import {
+  startPlaySession,
+  markLoopPlay,
+  updatePlayTime,
+  flushPlaySession,
+} from '@/utils/playBehavior';
 interface BbPlayerMusicContext {
   audioEle: Ref<HTMLAudioElement | null>;
   currentMusic: ComputedRef<SongDetailItem>;
@@ -68,13 +74,16 @@ const bbPlayerMusic = {
     // 获取当前播放时间
     ele.ontimeupdate = () => {
       currentTime.value = ele.currentTime;
+      updatePlayTime(ele.currentTime);
     };
 
     // 当前音乐播放完毕
     ele.onended = () => {
       if (mode.value === PLAY_MODE.LOOP) {
+        markLoopPlay();
         loop();
       } else {
+        flushPlaySession();
         next();
       }
     };
@@ -121,6 +130,7 @@ const bbPlayerMusic = {
     ele.oncanplay = () => {
       retry = 1;
       sendPlayerStatus('player_status', true);
+      startPlaySession(currentMusic.value);
       if (
         historyList.value.length === 0 ||
         currentMusic.value.id !== historyList.value[0]?.id
