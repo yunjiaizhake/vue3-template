@@ -8,25 +8,33 @@
  */
 import { post } from '@/utils/axios';
 import type { SongDetailItem } from '@/types/dataTypes';
-import { usePlayerStore } from '@/stores/index';
+
+export interface RecommendedSongInfo {
+  name: string;
+  singer?: string;
+  musicId?: string;
+  source?: 'collaborative' | 'collection' | 'dialog' | 'multimodal';
+}
 
 /**
  * 推荐结束后统一写入三个集合
+ * @param recommendedSong 本次推荐出来的歌曲信息（写入 recommend_histories 的目标）
  */
-export function writeRecommendRecord(uid: string, favorites: SongDetailItem[]) {
+export function writeRecommendRecord(
+  uid: string,
+  favorites: SongDetailItem[],
+  recommendedSong?: RecommendedSongInfo,
+) {
   if (!uid || uid === 'null' || uid === '00000000') return;
 
-  const store = usePlayerStore();
-  const currentMusic = store.currentMusic;
-
-  // 1. 写入 recommend_histories
-  if (currentMusic?.id) {
+  // 1. 写入 recommend_histories —— 写入的是本次推荐出来的歌曲
+  if (recommendedSong?.name) {
     post('/recommend/write-history', {
       uid,
-      musicId: String(currentMusic.id),
-      name: currentMusic.name || '',
-      singer: currentMusic.singer || '',
-      source: 'collaborative',
+      musicId: recommendedSong.musicId || '',
+      name: recommendedSong.name,
+      singer: recommendedSong.singer || '',
+      source: recommendedSong.source || 'collaborative',
     }).catch(() => {});
   }
 

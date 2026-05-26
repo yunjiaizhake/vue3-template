@@ -134,6 +134,7 @@ import { PLAY_MODE, BBPlayer_CONFIG } from '@/config';
 import { getVolume, setVolume, addRecommendHistory } from '@/utils/storage';
 import { recommendFromFavorites, toggleImmersive } from '@/utils/context-menu';
 import { searchAndPlay } from '@/utils/aiplay';
+import { flushPlaySession } from '@/utils/playBehavior';
 
 import BbProgress from '@/base/bb-progress/index.vue';
 import MusicBtn from '@/components/music-btn/index.vue';
@@ -438,6 +439,7 @@ function initKeyDown() {
 
 function prev(flag = false) {
   if (!isMusicPlay()) return;
+  flushPlaySession();
   store.setLastSwitchAction('prev');
   if (playlist.value.length === 1) {
     if (flag) {
@@ -462,6 +464,7 @@ function play() {
 
 function next(flag = false) {
   if (!isMusicPlay()) return;
+  flushPlaySession();
   store.setLastSwitchAction('next');
 
   const length = playlist.value.length;

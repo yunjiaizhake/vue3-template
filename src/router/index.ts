@@ -77,22 +77,17 @@ const routes = [
         },
       },
       {
-        path: '/music/ai-chat', // AI 聊天 (本地)
-        name: 'music-ai-chat-local',
-        component: () => import('@/pages/aiChatLocal/index.vue'),
+        path: '/music/ai-chat-online',
+        name: 'music-ai-chat-online',
+        component: () => import('@/pages/aiChatOnline/index.vue'),
         meta: {
-          title: 'AI 助手(本地)',
+          title: 'AI 助手',
           keepAlive: true,
         },
       },
       {
-        path: '/music/ai-chat-online', // AI 聊天 (在线)
-        name: 'music-ai-chat-online',
-        component: () => import('@/pages/aiChatOnline/index.vue'),
-        meta: {
-          title: 'AI 助手(在线)',
-          keepAlive: true,
-        },
+        path: '/music/ai-chat',
+        redirect: '/music/ai-chat-online',
       },
       {
         path: '/music/creative-workshop', // 创意工坊

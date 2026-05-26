@@ -9,11 +9,13 @@ import type { SongDetailItem, FMList } from '@/types/dataTypes';
 import {
   getFavoriteList,
   getRecommendHistory,
+  addRecommendHistory,
   getUserId,
   getCookie,
 } from '@/utils/storage';
 import { searchAndPlay } from '@/utils/aiplay';
 import { useAiEventBusStore } from '@/stores/aiEventBus';
+import { usePlayerStore } from '@/stores/index';
 import { writeRecommendRecord } from '@/utils/recommendRecord';
 
 type ToastPosition = 'top' | 'center' | 'bottom';
@@ -93,10 +95,21 @@ export async function recommendFromFavorites(options: {
     const history = getRecommendHistory();
     const res = await recommendLoveHundredSong(userId, history);
 
-    // 通过协同过滤算法拿到了歌曲，直接返回不走后续流程
+    // 通过协同过滤算法拿到了歌曲，搜索并加入正在播放列表
     if (res?.data?.songName) {
-      // 推荐成功后异步写入数据库记录
-      writeRecommendRecord(userId, favorites);
+      const song = await searchAndPlay(res.data.songName);
+      if (song) {
+        toast?.('已为您推荐歌曲：' + song.name, 'center', 3000);
+        addRecommendHistory(`${song.singer}：${song.name}`);
+      }
+      isAiRecommendActive.value = false;
+      // 推荐成功后异步写入数据库记录（写入的是本次推荐出来的歌曲）
+      writeRecommendRecord(userId, favorites, {
+        name: res.data.name || res.data.songName,
+        singer: res.data.singer || '',
+        musicId: res.data.musicId || '',
+        source: 'collaborative',
+      });
       return;
     }
     // 协同过滤没有拿到歌曲，走网易FM歌曲
@@ -107,10 +120,19 @@ export async function recommendFromFavorites(options: {
     }
 
     if (FMSongList[FMSongNumber]) {
-      searchAndPlay(FMSongList[FMSongNumber]!.name);
-      toast?.('已为您播放：' + FMSongList[FMSongNumber]!.name);
-      // 推荐成功后异步写入数据库记录
-      writeRecommendRecord(userId, favorites);
+      const fmSong = FMSongList[FMSongNumber]!;
+      const song = await searchAndPlay(fmSong.name);
+      if (song) {
+        toast?.('已为您推荐歌曲：' + song.name, 'center', 3000);
+        addRecommendHistory(`${song.singer}：${song.name}`);
+      }
+      isAiRecommendActive.value = false;
+      // 推荐成功后异步写入数据库记录（写入的是FM推荐出来的歌曲）
+      writeRecommendRecord(userId, favorites, {
+        name: fmSong.name,
+        musicId: fmSong.id || '',
+        source: 'collection',
+      });
       FMSongNumber++;
       return;
     }
@@ -127,8 +149,14 @@ export async function recommendFromFavorites(options: {
       payload,
     )}${historyText}`;
     await getAiChat(prompt, uid);
-    // 大模型兜底也异步写入记录
-    writeRecommendRecord(userId, favorites);
+    // 大模型兜底：AI推荐的歌曲通过play_song工具播放后会自动成为currentMusic
+    const store = usePlayerStore();
+    writeRecommendRecord(userId, favorites, {
+      name: store.currentMusic?.name || '',
+      singer: store.currentMusic?.singer || '',
+      musicId: store.currentMusic?.id ? String(store.currentMusic.id) : '',
+      source: 'dialog',
+    });
     window.setTimeout(() => {
       if (isAiRecommendActive.value) {
         toast?.('网络开小差了，请稍后再试');

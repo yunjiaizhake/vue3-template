@@ -3,7 +3,7 @@
     <!-- 头部操作栏 -->
     <div class="chat-header">
       <div class="header-left">
-        <span class="chat-title">音乐小助手</span>
+        <span class="chat-title">{{ chatTitle }}</span>
       </div>
       <div class="header-btns">
         <button v-if="isLoading" class="stop-btn" @click="handleStopGeneration">
@@ -28,7 +28,7 @@
         <div class="welcome-icon">
           <bb-icon type="robot" :size="48" />
         </div>
-        <h3>你好！我是音乐小助手</h3>
+        <h3>你好！我是{{ chatTitle }}</h3>
         <p>有什么我可以帮助你的吗？</p>
       </div>
 
@@ -226,6 +226,11 @@ const fileInputRef = useTemplateRef<HTMLInputElement>('fileInputRef');
 const messageListRef = useTemplateRef<HTMLDivElement>('messageListRef');
 let abortController: AbortController | null = null;
 
+const isOffline = ref(!navigator.onLine);
+const chatTitle = computed(() =>
+  isOffline.value ? '音乐小助手（离线本地版）' : '音乐小助手',
+);
+
 const pendingImages = ref<string[]>([]);
 const imageUploading = ref(false);
 const isDragging = ref(false);
@@ -248,8 +253,23 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => window.addEventListener('keydown', handleKeydown));
-onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
+function handleOnline() {
+  isOffline.value = false;
+}
+function handleOffline() {
+  isOffline.value = true;
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+  window.addEventListener('online', handleOnline);
+  window.addEventListener('offline', handleOffline);
+});
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+  window.removeEventListener('online', handleOnline);
+  window.removeEventListener('offline', handleOffline);
+});
 
 // ------------------------------ 方法 ------------------------------
 const escapeHtml = (text: string) =>

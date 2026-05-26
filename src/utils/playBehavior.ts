@@ -84,31 +84,34 @@ export function flushPlaySession() {
     return;
   }
 
-  if (session.accumulatedTime < 3) return;
-
   lastReportedMusicId = session.musicId;
 
-  reportPlayBehavior({
-    uid,
-    musicId: session.musicId,
-    name: session.name,
-    singer: session.singer,
-    album: session.album,
-    duration: session.duration,
-    playDuration: Math.round(session.accumulatedTime),
-    isLoop: session.isLoop,
-  }).catch((err) => {
-    console.warn('[PlayBehavior] 上报失败:', err);
-  });
+  // 播放时长大于1秒才上报播放行为（过滤掉加载失败等无效会话）
+  if (session.accumulatedTime >= 1) {
+    reportPlayBehavior({
+      uid,
+      musicId: session.musicId,
+      name: session.name,
+      singer: session.singer,
+      album: session.album,
+      duration: session.duration,
+      playDuration: Math.round(session.accumulatedTime),
+      isLoop: session.isLoop,
+    }).catch((err) => {
+      console.warn('[PlayBehavior] 上报失败:', err);
+    });
+  }
 
-  // 判定是否完整播放并上报反馈
+  // 判定是否完整播放并上报反馈（无最低时长限制，只要有session就上报）
   if (
     session.duration > 0 &&
     session.accumulatedTime >= session.duration * 0.8
   ) {
     reportRecommendFeedback(uid, session.musicId, 'completed').catch(() => {});
-  } else if (session.duration > 0 && session.accumulatedTime < 15) {
-    reportRecommendFeedback(uid, session.musicId, 'skipped').catch(() => {});
+  } else if (session.duration > 0) {
+    // 未完整播放即切歌 → 视为跳过，skipRate = 1 - 已听时长/歌曲总时长
+    const skipRate = 1 - session.accumulatedTime / session.duration;
+    reportRecommendFeedback(uid, session.musicId, 'skipped', skipRate).catch(() => {});
   } else {
     reportRecommendFeedback(uid, session.musicId, 'listened').catch(() => {});
   }

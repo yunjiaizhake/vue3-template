@@ -23,16 +23,10 @@
     <router-link to="/music/creative-workshop" custom v-slot="{ navigate, isActive }">
       <span :class="{ active: isActive }" @click="navigate">创意工坊</span>
     </router-link>
-    <router-link
-      v-if="isOnline"
-      to="/music/ai-chat-online"
-      custom
-      v-slot="{ navigate, isActive }"
-    >
-      <span :class="{ active: isActive }" @click="navigate">音乐小助手</span>
-    </router-link>
-    <router-link v-else to="/music/ai-chat" custom v-slot="{ navigate, isActive }">
-      <span :class="{ active: isActive }" @click="navigate">AI(本地)</span>
+    <router-link to="/music/ai-chat-online" custom v-slot="{ navigate, isActive }">
+      <span :class="{ active: isActive }" @click="navigate">{{
+        isOnline ? '音乐小助手' : '音乐小助手(离线)'
+      }}</span>
     </router-link>
   </div>
 </template>

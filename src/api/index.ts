@@ -249,7 +249,7 @@ export function removeLoveHundredUser(
 export function recommendLoveHundredSong(userId: string, history: string[] = []) {
   return post<{
     code: number;
-    data: { songName: string; index: number } | null;
+    data: { songName: string; index: number; name: string; singer: string; musicId: string } | null;
     message?: string;
   }>('/love/hundred/recommend', { userId, history });
 }
@@ -338,11 +338,13 @@ export function reportRecommendFeedback(
   uid: string,
   musicId: string,
   action: 'listened' | 'collected' | 'skipped' | 'completed',
+  skipRate?: number,
 ) {
   return post<{ code: number; msg: string }>('/recommend/feedback', {
     uid,
     musicId,
     action,
+    ...(action === 'skipped' && typeof skipRate === 'number' ? { skipRate } : {}),
   });
 }
 
