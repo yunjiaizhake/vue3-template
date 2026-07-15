@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+openspec
+.cursor
+.superpowers
+docs
